@@ -10,7 +10,11 @@ const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 ----------------------------------- */
 function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
 
-  const config = engineData.Weight_Correction_Config;
+  const config = engineData.BCS_Automatic_Detection_Logic?.Weight_Correction_Config;
+
+if (!config) {
+  throw new Error("Weight_Correction_Config missing in JSON");
+}
   const strategyMap = config.BCS_Based_Strategy;
 
   const strategy = strategyMap[String(finalBCS)];
