@@ -1,11 +1,13 @@
 import { calculateBCS } from "../lib/bcsEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
+import { calculateMacros } from "../lib/macroEngine.js";
 import fs from "fs";
 import path from "path";
 
 /* ----------------------------------
-   🔹 Load JSON
+   🔹 Load JSON (Only for Weight Plan)
 ----------------------------------- */
+
 const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
 
 if (!fs.existsSync(dataPath)) {
@@ -17,37 +19,21 @@ const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 /* ----------------------------------
    🔹 Weight Correction Engine
 ----------------------------------- */
+
 function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
 
-  const bcsRoot = engineData.BCS_Automatic_Detection_Logic;
+  const config =
+    engineData?.BCS_Automatic_Detection_Logic
+      ?.Weight_Correction_Config;
 
-  if (!bcsRoot) {
-    throw new Error("BCS_Automatic_Detection_Logic missing in JSON");
+  if (!config?.BCS_Based_Strategy) {
+    throw new Error("Weight correction configuration missing in JSON");
   }
 
-  const config = bcsRoot.Weight_Correction_Config;
-
-  if (!config) {
-    throw new Error("Weight_Correction_Config missing in JSON");
-  }
-
-  const strategyMap = config.BCS_Based_Strategy;
-
-  if (!strategyMap) {
-    throw new Error("BCS_Based_Strategy missing in JSON");
-  }
-
-  const strategy = strategyMap[String(finalBCS)];
+  const strategy = config.BCS_Based_Strategy[String(finalBCS)];
 
   if (!strategy) {
-    return {
-      mode: "Maintenance",
-      current_weight: weight,
-      target_weight: idealMid,
-      weekly_percent: 0,
-      weekly_change: 0,
-      estimated_weeks_to_goal: 0
-    };
+    return maintenance(weight, idealMid);
   }
 
   const mode = strategy.mode;
@@ -55,14 +41,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
   const weeklyPercentDecimal = weeklyPercent / 100;
 
   if (mode === "Maintenance" || weeklyPercentDecimal === 0) {
-    return {
-      mode: "Maintenance",
-      current_weight: weight,
-      target_weight: idealMid,
-      weekly_percent: 0,
-      weekly_change: 0,
-      estimated_weeks_to_goal: 0
-    };
+    return maintenance(weight, idealMid);
   }
 
   const difference =
@@ -71,18 +50,10 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
       : idealMid - weight;
 
   if (difference <= 0) {
-    return {
-      mode: "Maintenance",
-      current_weight: weight,
-      target_weight: idealMid,
-      weekly_percent: 0,
-      weekly_change: 0,
-      estimated_weeks_to_goal: 0
-    };
+    return maintenance(weight, idealMid);
   }
 
   const weeklyChange = weight * weeklyPercentDecimal;
-
   const rawWeeks = difference / weeklyChange;
 
   const weeks =
@@ -100,9 +71,21 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
   };
 }
 
+function maintenance(weight, idealMid) {
+  return {
+    mode: "Maintenance",
+    current_weight: Number(weight.toFixed(2)),
+    target_weight: Number(idealMid.toFixed(2)),
+    weekly_percent: 0,
+    weekly_change: 0,
+    estimated_weeks_to_goal: 0
+  };
+}
+
 /* ----------------------------------
    🔹 API Handler
 ----------------------------------- */
+
 export default async function handler(req, res) {
 
   try {
@@ -111,7 +94,14 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method Not Allowed" });
     }
 
-    const { weight, age, gender = "Male" } = req.body || {};
+    const {
+      weight,
+      age,
+      gender = "Male",
+      activity = "Moderate",
+      season = "Normal",
+      symptoms = []
+    } = req.body || {};
 
     if (!weight || !age) {
       return res.status(400).json({ error: "Missing weight or age" });
@@ -124,11 +114,19 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid numeric input" });
     }
 
+    /* --------------------------
+       1️⃣ BCS
+    -------------------------- */
+
     const bcsResult = calculateBCS(
       parsedWeight,
       parsedAge,
       gender
     );
+
+    /* --------------------------
+       2️⃣ Weight Projection
+    -------------------------- */
 
     const weightPlan = generateWeightCorrectionPlan(
       parsedWeight,
@@ -136,10 +134,45 @@ export default async function handler(req, res) {
       bcsResult.estimatedBCS
     );
 
+    /* --------------------------
+       3️⃣ Calories
+    -------------------------- */
+
+    const calorieResult = calculateCalories({
+      weight: parsedWeight,
+      lifeStage: bcsResult.life_stage,
+      activity,
+      bcsCategory: bcsResult.category,
+      season,
+      symptoms
+    });
+
+    /* --------------------------
+       4️⃣ Macros
+    -------------------------- */
+
+    const macroResult = calculateMacros({
+      calories: calorieResult.finalDailyCalories,
+      strategyMode: weightPlan.mode
+    });
+
+    /* --------------------------
+       5️⃣ Final Response
+    -------------------------- */
+
     return res.status(200).json({
-      input: { weight: parsedWeight, age: parsedAge, gender },
+      input: {
+        weight: parsedWeight,
+        age: parsedAge,
+        gender,
+        activity,
+        season,
+        symptoms
+      },
       lifecycle_report: bcsResult,
-      weight_correction_plan: weightPlan
+      weight_correction_plan: weightPlan,
+      calorie_report: calorieResult,
+      macro_report: macroResult
     });
 
   } catch (err) {
