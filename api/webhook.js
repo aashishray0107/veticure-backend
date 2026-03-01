@@ -1,3 +1,5 @@
+console.log("Webhook hit");
+console.log("Body:", req.body);
 import { calculateBCS } from "../lib/bcsEngine.js";
 
 let users = {};
