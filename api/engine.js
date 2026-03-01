@@ -1,3 +1,4 @@
+import engineData from "../data/labrador_engine.json" assert { type: "json" };
 import { calculateBCS } from "../lib/bcsEngine.js";
 
 function calculateRER(weight) {
@@ -9,6 +10,10 @@ function calculateHydration(weight) {
 }
 
 function getMERMultiplier(activity) {
+  const multipliers = engineData.MER_Multipliers;
+
+  return multipliers[activity] || multipliers["Moderate"];
+} {
   if (activity === "low") return 1.2;
   if (activity === "moderate") return 1.5;
   if (activity === "high") return 1.8;
@@ -35,16 +40,19 @@ export default async function handler(req, res) {
 
     const rer = calculateRER(weight);
     const merMultiplier = getMERMultiplier(activity);
-    let dailyCalories = rer * merMultiplier;
+    function getStrategyAdjustment(category) {
+  const strategies = engineData.Strategy_Adjustments;
 
-    // 🔥 Strategy Override Based on BCS
-    if (bcsResult.category === "Obese") {
-      dailyCalories *= 0.8; // 20% deficit
-    }
+  if (category === "Obese") {
+    return strategies.Fat_Loss_Priority || 0;
+  }
 
-    if (bcsResult.category === "Underweight") {
-      dailyCalories *= 1.2; // 20% surplus
-    }
+  if (category === "Underweight") {
+    return strategies.Weight_Gain_Priority || 0;
+  }
+
+  return 0;
+}
 
     // 🔥 Global Safety Cap
     const minCalories = rer * 0.7;
