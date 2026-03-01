@@ -82,6 +82,28 @@ Calculating final BCS using fusion model...
   `;
   break;
 
+  case "ask_ribs":
+  users[from].ribs = message;
+  users[from].step = "ask_waist";
+  reply = "2️⃣ Is a clear waist visible from above? (Yes / No)";
+  break;
+
+case "ask_waist":
+  users[from].waist = message;
+  users[from].step = "ask_tuck";
+  reply = "3️⃣ Is there an abdominal tuck from side view? (Yes / No)";
+  break;
+
+case "ask_tuck":
+  users[from].tuck = message;
+  users[from].step = "bcs_complete";
+
+  reply = `
+Thank you.
+Calculating final BCS using fusion model...
+  `;
+  break;
+
     default:
       reply = "Session complete. Type 'restart' to begin again.";
   }
