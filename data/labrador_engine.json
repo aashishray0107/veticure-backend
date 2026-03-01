@@ -2216,41 +2216,18 @@
       "Selection_Rule": "Find age bracket (with interpolation if needed), compute mid for given sex: Mid = (Min + Max) / 2"
     },
     "Deviation_Thresholds": {
-  "Emaciated": {
-    "Max_Deviation_Decimal": -0.30
-  },
-  "Very_Thin": {
-    "Min_Deviation_Decimal": -0.29,
-    "Max_Deviation_Decimal": -0.20
-  },
-  "Underweight": {
-    "Min_Deviation_Decimal": -0.19,
-    "Max_Deviation_Decimal": -0.10
-  },
-  "Lean": {
-    "Min_Deviation_Decimal": -0.09,
-    "Max_Deviation_Decimal": -0.05
-  },
-  "Ideal": {
-    "Min_Deviation_Decimal": -0.04,
-    "Max_Deviation_Decimal": 0.05
-  },
-  "Slightly_Overweight": {
-    "Min_Deviation_Decimal": 0.06,
-    "Max_Deviation_Decimal": 0.10
-  },
-  "Overweight": {
-    "Min_Deviation_Decimal": 0.11,
-    "Max_Deviation_Decimal": 0.19
-  },
-  "Obese": {
-    "Min_Deviation_Decimal": 0.20,
-    "Max_Deviation_Decimal": 0.29
-  },
-  "Severely_Obese": {
-    "Min_Deviation_Decimal": 0.30
-  },
-    "Deviation_To_BCS_Estimate": {
+  "Emaciated": { "Max_Deviation_Decimal": -0.30 },
+  "Very_Thin": { "Min_Deviation_Decimal": -0.29, "Max_Deviation_Decimal": -0.20 },
+  "Underweight": { "Min_Deviation_Decimal": -0.19, "Max_Deviation_Decimal": -0.10 },
+  "Lean": { "Min_Deviation_Decimal": -0.09, "Max_Deviation_Decimal": -0.05 },
+  "Ideal": { "Min_Deviation_Decimal": -0.04, "Max_Deviation_Decimal": 0.05 },
+  "Slightly_Overweight": { "Min_Deviation_Decimal": 0.06, "Max_Deviation_Decimal": 0.10 },
+  "Overweight": { "Min_Deviation_Decimal": 0.11, "Max_Deviation_Decimal": 0.19 },
+  "Obese": { "Min_Deviation_Decimal": 0.20, "Max_Deviation_Decimal": 0.29 },
+  "Severely_Obese": { "Min_Deviation_Decimal": 0.30 }
+},
+
+"Deviation_To_BCS_Estimate": {
   "Emaciated": { "min_bcs": 1, "max_bcs": 1 },
   "Very_Thin": { "min_bcs": 2, "max_bcs": 2 },
   "Underweight": { "min_bcs": 3, "max_bcs": 3 },
@@ -3864,4 +3841,3 @@
     "BCS_Final_Single_Category": true
   }
   }
-}
