@@ -1,3 +1,4 @@
+import { calculateBCS } from "../lib/bcsEngine.js";
 let users = {};
 
 export default async function handler(req, res) {
@@ -59,12 +60,27 @@ export default async function handler(req, res) {
       reply = "Select activity level:\n1. Low\n2. Moderate\n3. High";
       break;
 
-    case "ask_activity":
-      users[from].activity = message;
-      users[from].step = "completed";
-      reply = "Thank you. Calculating BCS and nutrition plan...";
-      console.log("User Data:", users[from]);
-      break;
+    case "ask_ribs":
+  users[from].ribs = message;
+  users[from].step = "ask_waist";
+  reply = "2️⃣ Is a clear waist visible from above? (Yes / No)";
+  break;
+
+case "ask_waist":
+  users[from].waist = message;
+  users[from].step = "ask_tuck";
+  reply = "3️⃣ Is there an abdominal tuck from side view? (Yes / No)";
+  break;
+
+case "ask_tuck":
+  users[from].tuck = message;
+  users[from].step = "bcs_complete";
+
+  reply = `
+Thank you.
+Calculating final BCS using fusion model...
+  `;
+  break;
 
     default:
       reply = "Session complete. Type 'restart' to begin again.";
