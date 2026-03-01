@@ -2216,39 +2216,51 @@
       "Selection_Rule": "Find age bracket (with interpolation if needed), compute mid for given sex: Mid = (Min + Max) / 2"
     },
     "Deviation_Thresholds": {
-      "Underweight": {
-        "Max_Deviation_Decimal": -0.06
-      },
-      "Ideal": {
-        "Min_Deviation_Decimal": -0.05,
-        "Max_Deviation_Decimal": 0.05
-      },
-      "Overweight": {
-        "Min_Deviation_Decimal": 0.06,
-        "Max_Deviation_Decimal": 0.19
-      },
-      "Obese": {
-        "Min_Deviation_Decimal": 0.2
-      }
-    },
+  "Emaciated": {
+    "Max_Deviation_Decimal": -0.30
+  },
+  "Very_Thin": {
+    "Min_Deviation_Decimal": -0.29,
+    "Max_Deviation_Decimal": -0.20
+  },
+  "Underweight": {
+    "Min_Deviation_Decimal": -0.19,
+    "Max_Deviation_Decimal": -0.10
+  },
+  "Lean": {
+    "Min_Deviation_Decimal": -0.09,
+    "Max_Deviation_Decimal": -0.05
+  },
+  "Ideal": {
+    "Min_Deviation_Decimal": -0.04,
+    "Max_Deviation_Decimal": 0.05
+  },
+  "Slightly_Overweight": {
+    "Min_Deviation_Decimal": 0.06,
+    "Max_Deviation_Decimal": 0.10
+  },
+  "Overweight": {
+    "Min_Deviation_Decimal": 0.11,
+    "Max_Deviation_Decimal": 0.19
+  },
+  "Obese": {
+    "Min_Deviation_Decimal": 0.20,
+    "Max_Deviation_Decimal": 0.29
+  },
+  "Severely_Obese": {
+    "Min_Deviation_Decimal": 0.30
+  },
     "Deviation_To_BCS_Estimate": {
-      "Underweight": {
-        "min_bcs": 1,
-        "max_bcs": 3
-      },
-      "Ideal": {
-        "min_bcs": 4,
-        "max_bcs": 5
-      },
-      "Overweight": {
-        "min_bcs": 6,
-        "max_bcs": 7
-      },
-      "Obese": {
-        "min_bcs": 8,
-        "max_bcs": 9
-      }
-    },
+  "Emaciated": { "min_bcs": 1, "max_bcs": 1 },
+  "Very_Thin": { "min_bcs": 2, "max_bcs": 2 },
+  "Underweight": { "min_bcs": 3, "max_bcs": 3 },
+  "Lean": { "min_bcs": 4, "max_bcs": 4 },
+  "Ideal": { "min_bcs": 5, "max_bcs": 5 },
+  "Slightly_Overweight": { "min_bcs": 6, "max_bcs": 6 },
+  "Overweight": { "min_bcs": 7, "max_bcs": 7 },
+  "Obese": { "min_bcs": 8, "max_bcs": 8 },
+  "Severely_Obese": { "min_bcs": 9, "max_bcs": 9 }
+},
     "BCS_Questionnaire_Logic": {
       "Questions": [
         {
@@ -3821,5 +3833,6 @@
     "Single_Final_Calorie_Value": true,
     "Hydration_Single_Output": true,
     "BCS_Final_Single_Category": true
+  }
   }
 }
