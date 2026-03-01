@@ -152,9 +152,10 @@ export default async function handler(req, res) {
     -------------------------- */
 
     const macroResult = calculateMacros({
-      calories: calorieResult.finalDailyCalories,
-      strategyMode: weightPlan.mode
-    });
+  calories: calorieReport.finalDailyCalories,
+  strategyMode: weightPlan.mode,
+  lifeStage: bcsResult.life_stage
+});
 
     /* --------------------------
        5️⃣ Final Response
