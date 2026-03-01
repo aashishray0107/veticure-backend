@@ -13,9 +13,10 @@ export default async function handler(req, res) {
     }
 
     const result = calculateBCS(
-      parseFloat(weight),
-      parseInt(age)
-    );
+  parseFloat(weight),
+  parseInt(age),
+  "Male"   // temporary default
+);
 
     return res.status(200).json({
       input: { weight, age },
