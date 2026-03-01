@@ -1,5 +1,8 @@
-import engineData from "../data/labrador_engine.json" assert { type: "json" };
+import fs from "fs";
+import path from "path";
 
+const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
+const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 function resolveStage(ageMonths) {
   const stages = engineData.Lifecycle_Stages || {};
 
