@@ -140,6 +140,7 @@ export default async function handler(req, res) {
 
     const calorieResult = calculateCalories({
       weight: parsedWeight,
+      ageMonths: parsedAge,
       lifeStage: bcsResult.life_stage,
       activity,
       bcsCategory: bcsResult.category,
@@ -148,14 +149,14 @@ export default async function handler(req, res) {
     });
 
     /* --------------------------
-       4️⃣ Macros
+       4️⃣ Macros (AAFCO validated)
     -------------------------- */
 
     const macroResult = calculateMacros({
-  calories: calorieReport.finalDailyCalories,
-  strategyMode: weightPlan.mode,
-  lifeStage: bcsResult.life_stage
-});
+      calories: calorieResult.finalDailyCalories,
+      strategyMode: weightPlan.mode,
+      lifeStage: bcsResult.life_stage
+    });
 
     /* --------------------------
        5️⃣ Final Response
