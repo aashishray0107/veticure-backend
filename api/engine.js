@@ -1,4 +1,5 @@
 import { calculateBCS } from "../lib/bcsEngine.js";
+import { calculateCalories } from "../lib/calorieEngine.js";
 import fs from "fs";
 import path from "path";
 
