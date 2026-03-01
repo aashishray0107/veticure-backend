@@ -93,10 +93,35 @@ Reply: Yes / No
     break;
 
   case "ask_tuck":
-    users[from].tuck = message;
-    users[from].step = "completed";
-    reply = "Thank you. Final BCS calculation complete.";
-    break;
+  users[from].tuck = message;
+
+  const deviationBCS = users[from].bcsData.estimatedBCS;
+
+  let questionnaireScore = 0;
+
+  if (users[from].ribs.toLowerCase() === "no") questionnaireScore += 2;
+  if (users[from].waist.toLowerCase() === "no") questionnaireScore += 2;
+  if (users[from].tuck.toLowerCase() === "no") questionnaireScore += 2;
+
+  let questionnaireBCS = 5;
+
+  if (questionnaireScore <= 1) questionnaireBCS = 4;
+  else if (questionnaireScore <= 3) questionnaireBCS = 5;
+  else if (questionnaireScore <= 4) questionnaireBCS = 6;
+  else questionnaireBCS = 8;
+
+  const finalBCSRaw = (deviationBCS * 0.6) + (questionnaireBCS * 0.4);
+  const finalBCS = Math.round(finalBCSRaw);
+
+  users[from].finalBCS = finalBCS;
+  users[from].step = "completed";
+
+  reply = `
+Final BCS Score: ${finalBCS} / 9
+
+Type 'restart' to begin again.
+  `;
+  break;
 
   default:
     reply = "Session complete. Type 'restart' to begin again.";
