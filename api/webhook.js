@@ -1,4 +1,4 @@
-let users = {}; // simple memory store
+let users = {};
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -10,6 +10,20 @@ export default async function handler(req, res) {
 
   if (!users[from]) {
     users[from] = { step: "ask_name" };
+  }
+
+  // 🔴 RESTART LOGIC – ALWAYS FIRST
+  if (message && message.toLowerCase() === "restart") {
+    users[from] = { step: "ask_name" };
+
+    const response = `
+      <Response>
+        <Message>Session restarted. Please enter your name:</Message>
+      </Response>
+    `;
+
+    res.setHeader("Content-Type", "text/xml");
+    return res.status(200).send(response);
   }
 
   let reply = "";
