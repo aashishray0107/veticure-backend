@@ -3594,11 +3594,10 @@
           "Rohu fish boiled deboned"
         ],
         "carb_sources": [
-          "Rice cooked white",
-          "Moong dal cooked",
-          "Sweet potato boiled",
-          "Roti plain wheat (no salt, no oil)"
-        ],
+  "Rice cooked white",
+  "Sweet potato boiled",
+  "Roti plain wheat (no salt, no oil)"
+],
         "fiber_sources": [
           "Pumpkin boiled",
           "Lauki boiled",
