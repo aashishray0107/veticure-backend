@@ -1,3 +1,5 @@
+import { generateDietPlan } from "../lib/dietEngine.js";
+import { generateDietPlan } from "../lib/dietEngine.js";
 import { simulateJourney } from "../lib/progressionEngine.js";
 import { calculateBCS } from "../lib/bcsEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
@@ -188,6 +190,13 @@ export default async function handler(req, res) {
       lifeStage: bcsResult.life_stage
     });
 
+    const dietPlan = generateDietPlan({
+  macros: macroResult.macro_grams,
+  calories: calorieResult.finalDailyCalories,
+  bcsCategory: bcsResult.category,
+  preference: "non_veg"
+});
+
     /* 5️⃣ Weekly Simulation */
 
     const weeklyProjection = simulateJourney({
@@ -218,7 +227,8 @@ export default async function handler(req, res) {
       weight_correction_plan: weightPlan,
       calorie_report: calorieResult,
       macro_report: macroResult,
-      weekly_projection: weeklyProjection
+      weekly_projection: weeklyProjection,
+      weekly_diet_plan: dietPlan
     });
 
   } catch (err) {
