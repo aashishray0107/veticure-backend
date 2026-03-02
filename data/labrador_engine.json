@@ -3039,7 +3039,26 @@
         "max_safe_percentage_of_total_meal": 0.25,
         "category": "carb"
       }
-    }
+    },
+    "Diet_Rotation_Config": {
+  "protein_priority_mode": "clinical_exact",
+  "non_veg_proteins": [
+    "Chicken stew",
+    "Egg mash"
+  ],
+  "veg_proteins": [
+    "Boiled paneer",
+    "Moong dal khichdi"
+  ],
+  "carb_sources": [
+    "Pumpkin rice",
+    "Moong dal khichdi"
+  ],
+  "fiber_sources": [
+    "Boiled veggies"
+  ],
+  "max_same_protein_streak": 2
+}
   },
   "Vegetable_Safety_List": {
     "description": "Used to prevent fiber overload, gas risk and inappropriate lifecycle usage",
