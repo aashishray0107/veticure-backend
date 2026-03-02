@@ -1,5 +1,4 @@
 import { generateDietPlan } from "../lib/dietEngine.js";
-import { generateDietPlan } from "../lib/dietEngine.js";
 import { simulateJourney } from "../lib/progressionEngine.js";
 import { calculateBCS } from "../lib/bcsEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
