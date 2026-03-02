@@ -190,8 +190,11 @@ export default async function handler(req, res) {
     });
 
     const dietPlan = generateDietPlan({
-  macros: macroResult.macro_grams,
-  calories: calorieResult.finalDailyCalories,
+  macros: {
+  protein: weeklyProjection[0]?.protein_g || macroResult.macro_grams.protein,
+  carbs: weeklyProjection[0]?.carbs_g || macroResult.macro_grams.carbs
+},
+calories: weeklyProjection[0]?.calories || calorieResult.finalDailyCalories,
   bcsCategory: bcsResult.category,
   preference: "non_veg"
 });
