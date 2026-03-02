@@ -3058,6 +3058,45 @@
     "Boiled veggies"
   ],
   "max_same_protein_streak": 2
+},
+"Diet_Food_Classification": {
+  "non_veg": {
+    "protein_sources": [
+      "Chicken",
+      "Egg",
+      "Fish"
+    ],
+    "carb_sources": [
+      "Rice",
+      "Sweet_Potato"
+    ],
+    "fiber_sources": [
+      "Pumpkin",
+      "Carrot",
+      "Beans"
+    ]
+  },
+  "veg": {
+    "protein_sources": [
+      "Paneer",
+      "Tofu",
+      "Lentils"
+    ],
+    "carb_sources": [
+      "Rice",
+      "Oats"
+    ],
+    "fiber_sources": [
+      "Spinach",
+      "Carrot",
+      "Pumpkin"
+    ]
+  },
+  "Diet_Rotation_Rules": {
+  "max_same_protein_streak": 2,
+  "rotate_carbs_daily": true,
+  "fiber_required_daily": true
+}
 }
   },
   "Vegetable_Safety_List": {
