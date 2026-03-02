@@ -2615,7 +2615,7 @@
         "Calorie_Strategy": "Use Weight_Condition_Adjustment_Engine.Overweight_or_Obese",
         "Protein_Target_DM_Range": [
           0.28,
-          0.32
+          0.32 
         ],
         "Activity_Strategy": "Moderate strength-focused exercise",
         "Restriction": "Do not allow calorie surplus",
@@ -3060,21 +3060,21 @@
   "max_same_protein_streak": 2
 },
 "Diet_Food_Classification": {
-  "non_veg": {
-    "protein_sources": [
-      "Chicken",
-      "Egg",
-      "Fish"
-    ],
+  "non_veg_proteins": [
+  "Chicken breast boiled",
+  "Egg whole boiled",
+  "Rohu fish boiled deboned"
+],
     "carb_sources": [
-      "Rice",
-      "Sweet_Potato"
-    ],
+  "Rice cooked white",
+  "Moong dal cooked",
+  "Sweet potato boiled"
+],
     "fiber_sources": [
-      "Pumpkin",
-      "Carrot",
-      "Beans"
-    ]
+  "Pumpkin boiled",
+  "Lauki boiled",
+  "Carrot boiled"
+]
   },
   "veg": {
     "protein_sources": [
@@ -3097,8 +3097,7 @@
   "rotate_carbs_daily": true,
   "fiber_required_daily": true
 }
-}
-  },
+},
   "Vegetable_Safety_List": {
     "description": "Used to prevent fiber overload, gas risk and inappropriate lifecycle usage",
     "items": [
