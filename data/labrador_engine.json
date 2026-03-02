@@ -3544,7 +3544,6 @@
       }
     },
     "Diet_Rotation_Config": {
-      "classification": {
         "non_veg_proteins": [
           "Chicken breast boiled",
           "Egg whole boiled",
@@ -3703,4 +3702,3 @@
       }
     }
   }
-}
