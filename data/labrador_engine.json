@@ -3415,6 +3415,24 @@
         "max_safe_percentage_of_total_meal": 0.5,
         "category": "carb_base"
       },
+      "Roti plain wheat (no salt, no oil)": {
+  "kcal_per_100g": 265,
+  "protein_g": 8.0,
+  "fat_g": 1.5,
+  "carbs_g": 50.0,
+  "fiber_g": 2.0,
+  "calcium_g": 0.015,
+  "phosphorus_g": 0.09,
+  "moisture_g": 35.0,
+  "digestibility_rating": "moderate",
+  "lifecycle_suitability": [
+    "adult",
+    "weight_loss",
+    "muscle_gain"
+  ],
+  "max_safe_percentage_of_total_meal": 0.5,
+  "category": "carb_base"
+},
       "Oats cooked": {
         "kcal_per_100g": 71,
         "protein_g": 2.5,
@@ -3578,7 +3596,8 @@
         "carb_sources": [
           "Rice cooked white",
           "Moong dal cooked",
-          "Sweet potato boiled"
+          "Sweet potato boiled",
+          "Roti plain wheat (no salt, no oil)"
         ],
         "fiber_sources": [
           "Pumpkin boiled",
