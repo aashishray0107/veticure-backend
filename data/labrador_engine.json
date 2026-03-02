@@ -3541,7 +3541,33 @@
         ],
         "max_safe_percentage_of_total_meal": 0.05,
         "category": "moderate_fat_source"
-      }
+      },
+      "Paneer low fat": {
+  "kcal_per_100g": 200,
+  "protein_g": 18,
+  "fat_g": 12,
+  "carbs_g": 3,
+  "fiber_g": 0,
+  "category": "veg_protein"
+},
+
+"Tofu firm": {
+  "kcal_per_100g": 144,
+  "protein_g": 15,
+  "fat_g": 8,
+  "carbs_g": 3,
+  "fiber_g": 1,
+  "category": "veg_protein"
+},
+
+"Masoor dal cooked": {
+  "kcal_per_100g": 116,
+  "protein_g": 9,
+  "fat_g": 0.4,
+  "carbs_g": 20,
+  "fiber_g": 8,
+  "category": "veg_protein"
+}
     },
     "Diet_Rotation_Config": {
         "non_veg_proteins": [
@@ -3561,10 +3587,11 @@
         ],
         "veg": {
           "protein_sources": [
-            "Paneer",
-            "Tofu",
-            "Lentils"
-          ],
+  "Moong dal cooked",
+  "Masoor dal cooked",
+  "Paneer low fat",
+  "Tofu firm"
+],
           "carb_sources": [
             "Rice cooked white",
             "Oats cooked"
