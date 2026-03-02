@@ -1,3 +1,4 @@
+import { simulateJourney } from "../lib/progressionEngine.js";
 import { calculateBCS } from "../lib/bcsEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
 import { calculateMacros } from "../lib/macroEngine.js";
@@ -5,7 +6,7 @@ import fs from "fs";
 import path from "path";
 
 /* ----------------------------------
-   🔹 Load JSON (Only for Weight Plan)
+   🔹 Load JSON
 ----------------------------------- */
 
 const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
@@ -14,7 +15,9 @@ if (!fs.existsSync(dataPath)) {
   throw new Error("labrador_engine.json not found in /data folder");
 }
 
-const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+const engineData = JSON.parse(
+  fs.readFileSync(dataPath, "utf-8")
+);
 
 /* ----------------------------------
    🔹 Weight Correction Engine
@@ -38,9 +41,8 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
 
   const mode = strategy.mode;
   const weeklyPercent = strategy.weekly_percent || 0;
-  const weeklyPercentDecimal = weeklyPercent / 100;
 
-  if (mode === "Maintenance" || weeklyPercentDecimal === 0) {
+  if (!weeklyPercent || mode === "Maintenance") {
     return maintenance(weight, idealMid);
   }
 
@@ -53,7 +55,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
     return maintenance(weight, idealMid);
   }
 
-  const weeklyChange = weight * weeklyPercentDecimal;
+  const weeklyChange = weight * (weeklyPercent / 100);
   const rawWeeks = difference / weeklyChange;
 
   const weeks =
@@ -125,7 +127,7 @@ export default async function handler(req, res) {
     );
 
     /* --------------------------
-       2️⃣ Weight Projection
+       2️⃣ Weight Plan
     -------------------------- */
 
     const weightPlan = generateWeightCorrectionPlan(
@@ -149,7 +151,7 @@ export default async function handler(req, res) {
     });
 
     /* --------------------------
-       4️⃣ Macros (AAFCO validated)
+       4️⃣ Macros
     -------------------------- */
 
     const macroResult = calculateMacros({
@@ -159,7 +161,23 @@ export default async function handler(req, res) {
     });
 
     /* --------------------------
-       5️⃣ Final Response
+       5️⃣ Weekly Simulation
+    -------------------------- */
+
+    const weeklyProjection = simulateJourney({
+      startWeight: parsedWeight,
+      targetWeight: weightPlan.target_weight,
+      weeklyPercent: weightPlan.weekly_percent,
+      mode: weightPlan.mode,
+      lifeStage: bcsResult.life_stage,
+      gender,
+      activity,
+      season,
+      symptoms
+    });
+
+    /* --------------------------
+       6️⃣ Final Response
     -------------------------- */
 
     return res.status(200).json({
@@ -174,7 +192,8 @@ export default async function handler(req, res) {
       lifecycle_report: bcsResult,
       weight_correction_plan: weightPlan,
       calorie_report: calorieResult,
-      macro_report: macroResult
+      macro_report: macroResult,
+      weekly_projection: weeklyProjection
     });
 
   } catch (err) {
