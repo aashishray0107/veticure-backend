@@ -3625,6 +3625,10 @@
           ]
         }
       },
+      "Therapeutic_Meals": {
+  "GI_Support": "Khichdi",
+  "Recovery": "Daliya"
+},
       "rules": {
         "max_same_protein_streak": 2,
         "rotate_carbs_daily": true,
@@ -3747,7 +3751,12 @@
           "Protein % DM ≥ Nutrient_Standards.Growth_Large_Breed.Min_Protein_Percent_DM or Adult_Maintenance",
           "Macro sum ≈ 1.0 (±0.02 tolerance)",
           "No prohibited proteins used"
-        ]
+        ],
+        "therapeutic_meals": {
+  "GI_Support": ["Khichdi"],
+  "Recovery": ["Daliya"],
+  "Digestive_Cooling": ["Curd rice"]
+}
       }
     }
   }

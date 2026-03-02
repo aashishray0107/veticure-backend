@@ -25,7 +25,6 @@ const engineData = JSON.parse(
 ----------------------------------- */
 
 function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
-
   const config =
     engineData?.BCS_Automatic_Detection_Logic
       ?.Weight_Correction_Config;
@@ -35,7 +34,6 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
   }
 
   const strategy = config.BCS_Based_Strategy[String(finalBCS)];
-
   if (!strategy) return maintenance(weight, idealMid);
 
   const mode = strategy.mode;
@@ -86,7 +84,6 @@ function maintenance(weight, idealMid) {
 ----------------------------------- */
 
 function generatePuppyCorrectionPlan(weight, category) {
-
   if (category === "Severely_Obese" || category === "Obese") {
     return { mode: "Growth_Slowdown", weekly_percent: 0.5 };
   }
@@ -119,6 +116,23 @@ export default async function handler(req, res) {
       symptoms = []
     } = req.body || {};
 
+    /* ----------------------------------
+       🔹 Symptom Whitelist Filtering
+    ----------------------------------- */
+
+    const allowedSymptoms = [
+      "loose_stool",
+      "constipation",
+      "joint_stiffness",
+      "low_appetite",
+      "skin_itching",
+      "low_energy"
+    ];
+
+    const filteredSymptoms = (symptoms || []).filter(s =>
+      allowedSymptoms.includes(s)
+    );
+
     if (!weight || !age) {
       return res.status(400).json({ error: "Missing weight or age" });
     }
@@ -131,14 +145,20 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Invalid numeric input" });
     }
 
-    /* 1️⃣ BCS */
+    /* ----------------------------------
+       🔹 1️⃣ BCS
+    ----------------------------------- */
+
     const bcsResult = calculateBCS(
       parsedWeight,
       parsedAge,
       gender
     );
 
-    /* 2️⃣ Weight Plan */
+    /* ----------------------------------
+       🔹 2️⃣ Weight Plan
+    ----------------------------------- */
+
     let weightPlan;
 
     if (isPuppy) {
@@ -154,7 +174,10 @@ export default async function handler(req, res) {
       );
     }
 
-    /* 3️⃣ Calories */
+    /* ----------------------------------
+       🔹 3️⃣ Calories
+    ----------------------------------- */
+
     const calorieResult = calculateCalories({
       weight: parsedWeight,
       ageMonths: parsedAge,
@@ -162,17 +185,23 @@ export default async function handler(req, res) {
       activity,
       bcsCategory: bcsResult.category,
       season,
-      symptoms
+      symptoms: filteredSymptoms
     });
 
-    /* 4️⃣ Macros (Base) */
+    /* ----------------------------------
+       🔹 4️⃣ Macros (Base)
+    ----------------------------------- */
+
     const macroResult = calculateMacros({
       calories: calorieResult.finalDailyCalories,
       strategyMode: weightPlan.mode,
       lifeStage: bcsResult.life_stage
     });
 
-    /* 5️⃣ Weekly Simulation FIRST */
+    /* ----------------------------------
+       🔹 5️⃣ Weekly Projection FIRST
+    ----------------------------------- */
+
     const weeklyProjection = simulateJourney({
       startWeight: parsedWeight,
       targetWeight: weightPlan.target_weight,
@@ -183,10 +212,13 @@ export default async function handler(req, res) {
       gender,
       activity,
       season,
-      symptoms
+      symptoms: filteredSymptoms
     });
 
-    /* 6️⃣ Determine Active Feeding Targets */
+    /* ----------------------------------
+       🔹 6️⃣ Effective Targets
+    ----------------------------------- */
+
     const effectiveCalories =
       weeklyProjection?.length > 0
         ? weeklyProjection[0].calories
@@ -197,27 +229,57 @@ export default async function handler(req, res) {
         ? weeklyProjection[0].protein_g
         : macroResult.macro_grams.protein;
 
+    const effectiveFat =
+      weeklyProjection?.length > 0
+        ? weeklyProjection[0].fat_g
+        : macroResult.macro_grams.fat;
+
     const effectiveCarbs =
       weeklyProjection?.length > 0
         ? weeklyProjection[0].carbs_g
         : macroResult.macro_grams.carbs;
 
-    /* 7️⃣ Diet Plan (Aligned to Projection) */
-    const dietPlan = generateDietPlan({
-  macros: {
-    protein: effectiveProtein,
-    fat: weeklyProjection?.length > 0
-      ? weeklyProjection[0].fat_g
-      : macroResult.macro_grams.fat,
-    carbs: effectiveCarbs
-  },
-  calories: effectiveCalories,
-  bcsCategory: bcsResult.category,
-  preference: "non_veg",
-  bodyWeight: parsedWeight
-});
+    /* ----------------------------------
+       🔹 7️⃣ Diet Plan
+    ----------------------------------- */
 
-    /* 8️⃣ Response */
+    const dietPlan = generateDietPlan({
+      macros: {
+        protein: effectiveProtein,
+        fat: effectiveFat,
+        carbs: effectiveCarbs
+      },
+      calories: effectiveCalories,
+      bcsCategory: bcsResult.category,
+      preference: "non_veg",
+      bodyWeight: parsedWeight,
+      symptoms: filteredSymptoms
+    });
+
+    /* ----------------------------------
+       🔹 8️⃣ Supplement Advisory
+    ----------------------------------- */
+
+    let supplementAdvisory = {
+      omega3: { recommended: false }
+    };
+
+    if (
+      bcsResult.estimatedBCS >= 6 ||
+      bcsResult.life_stage === "Senior" ||
+      filteredSymptoms.includes("joint_stiffness") ||
+      filteredSymptoms.includes("skin_itching")
+    ) {
+      supplementAdvisory.omega3 = {
+        recommended: true,
+        reason: "Supports anti-inflammatory and metabolic function.",
+        note: "Consult veterinarian for appropriate EPA+DHA dosing based on body weight."
+      };
+    }
+
+    /* ----------------------------------
+       🔹 9️⃣ Response
+    ----------------------------------- */
 
     return res.status(200).json({
       input: {
@@ -226,14 +288,15 @@ export default async function handler(req, res) {
         gender,
         activity,
         season,
-        symptoms
+        symptoms: filteredSymptoms
       },
       lifecycle_report: bcsResult,
       weight_correction_plan: weightPlan,
       calorie_report: calorieResult,
       macro_report: macroResult,
       weekly_projection: weeklyProjection,
-      weekly_diet_plan: dietPlan
+      weekly_diet_plan: dietPlan,
+      supplement_advisory: supplementAdvisory
     });
 
   } catch (err) {
