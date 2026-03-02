@@ -204,14 +204,18 @@ export default async function handler(req, res) {
 
     /* 7️⃣ Diet Plan (Aligned to Projection) */
     const dietPlan = generateDietPlan({
-      macros: {
-        protein: effectiveProtein,
-        carbs: effectiveCarbs
-      },
-      calories: effectiveCalories,
-      bcsCategory: bcsResult.category,
-      preference: "non_veg"
-    });
+  macros: {
+    protein: effectiveProtein,
+    fat: weeklyProjection?.length > 0
+      ? weeklyProjection[0].fat_g
+      : macroResult.macro_grams.fat,
+    carbs: effectiveCarbs
+  },
+  calories: effectiveCalories,
+  bcsCategory: bcsResult.category,
+  preference: "non_veg",
+  bodyWeight: parsedWeight
+});
 
     /* 8️⃣ Response */
 
