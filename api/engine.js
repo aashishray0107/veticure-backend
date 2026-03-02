@@ -192,11 +192,11 @@ export default async function handler(req, res) {
 
     const weeklyProjection = simulateJourney({
   startWeight: parsedWeight,
-  startAgeMonths: parsedAge,
-  targetWeight: weightPlan.target_weight || bcsResult.idealMid,
+  targetWeight: weightPlan.target_weight,
   weeklyPercent: weightPlan.weekly_percent,
   mode: weightPlan.mode,
   lifeStage: bcsResult.life_stage,
+  startAgeMonths: parsedAge,
   gender,
   activity,
   season,
