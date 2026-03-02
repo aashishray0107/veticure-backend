@@ -3040,24 +3040,30 @@
         "category": "carb"
       }
     },
-    "Diet_Rotation_Config": {
-  "protein_priority_mode": "clinical_exact",
+    
+"Diet_Rotation_Config": {
   "non_veg_proteins": [
-    "Chicken stew",
-    "Egg mash"
+    "Chicken breast boiled",
+    "Chicken thigh boiled",
+    "Egg whole boiled",
+    "Rohu fish boiled deboned",
+    "Chicken liver boiled"
   ],
   "veg_proteins": [
-    "Boiled paneer",
-    "Moong dal khichdi"
+    "Moong dal cooked"
   ],
   "carb_sources": [
-    "Pumpkin rice",
-    "Moong dal khichdi"
+    "Rice cooked white",
+    "Oats cooked",
+    "Sweet potato boiled"
   ],
   "fiber_sources": [
-    "Boiled veggies"
+    "Pumpkin boiled",
+    "Lauki boiled",
+    "Carrot boiled"
   ],
   "max_same_protein_streak": 2
+}
 },
 "Diet_Food_Classification": {
   "non_veg_proteins": [
@@ -3096,7 +3102,6 @@
   "max_same_protein_streak": 2,
   "rotate_carbs_daily": true,
   "fiber_required_daily": true
-}
 },
   "Vegetable_Safety_List": {
     "description": "Used to prevent fiber overload, gas risk and inappropriate lifecycle usage",
