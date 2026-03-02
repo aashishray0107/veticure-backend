@@ -36,9 +36,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
 
   const strategy = config.BCS_Based_Strategy[String(finalBCS)];
 
-  if (!strategy) {
-    return maintenance(weight, idealMid);
-  }
+  if (!strategy) return maintenance(weight, idealMid);
 
   const mode = strategy.mode;
   const weeklyPercent = strategy.weekly_percent || 0;
@@ -52,9 +50,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
       ? weight - idealMid
       : idealMid - weight;
 
-  if (difference <= 0) {
-    return maintenance(weight, idealMid);
-  }
+  if (difference <= 0) return maintenance(weight, idealMid);
 
   const weeklyChange = weight * (weeklyPercent / 100);
   const rawWeeks = difference / weeklyChange;
@@ -92,23 +88,14 @@ function maintenance(weight, idealMid) {
 function generatePuppyCorrectionPlan(weight, category) {
 
   if (category === "Severely_Obese" || category === "Obese") {
-    return {
-      mode: "Growth_Slowdown",
-      weekly_percent: 0.5
-    };
+    return { mode: "Growth_Slowdown", weekly_percent: 0.5 };
   }
 
   if (category === "Very_Thin" || category === "Underweight") {
-    return {
-      mode: "Growth_Acceleration",
-      weekly_percent: 0.5
-    };
+    return { mode: "Growth_Acceleration", weekly_percent: 0.5 };
   }
 
-  return {
-    mode: "Optimal_Growth",
-    weekly_percent: 0
-  };
+  return { mode: "Optimal_Growth", weekly_percent: 0 };
 }
 
 /* ----------------------------------
@@ -145,7 +132,6 @@ export default async function handler(req, res) {
     }
 
     /* 1️⃣ BCS */
-
     const bcsResult = calculateBCS(
       parsedWeight,
       parsedAge,
@@ -153,7 +139,6 @@ export default async function handler(req, res) {
     );
 
     /* 2️⃣ Weight Plan */
-
     let weightPlan;
 
     if (isPuppy) {
@@ -170,7 +155,6 @@ export default async function handler(req, res) {
     }
 
     /* 3️⃣ Calories */
-
     const calorieResult = calculateCalories({
       weight: parsedWeight,
       ageMonths: parsedAge,
@@ -181,40 +165,55 @@ export default async function handler(req, res) {
       symptoms
     });
 
-    /* 4️⃣ Macros */
-
+    /* 4️⃣ Macros (Base) */
     const macroResult = calculateMacros({
       calories: calorieResult.finalDailyCalories,
       strategyMode: weightPlan.mode,
       lifeStage: bcsResult.life_stage
     });
 
-    const dietPlan = generateDietPlan({
-  macros: {
-  protein: weeklyProjection[0]?.protein_g || macroResult.macro_grams.protein,
-  carbs: weeklyProjection[0]?.carbs_g || macroResult.macro_grams.carbs
-},
-calories: weeklyProjection[0]?.calories || calorieResult.finalDailyCalories,
-  bcsCategory: bcsResult.category,
-  preference: "non_veg"
-});
-
-    /* 5️⃣ Weekly Simulation */
-
+    /* 5️⃣ Weekly Simulation FIRST */
     const weeklyProjection = simulateJourney({
-  startWeight: parsedWeight,
-  targetWeight: weightPlan.target_weight,
-  weeklyPercent: weightPlan.weekly_percent,
-  mode: weightPlan.mode,
-  lifeStage: bcsResult.life_stage,
-  startAgeMonths: parsedAge,
-  gender,
-  activity,
-  season,
-  symptoms
-});
+      startWeight: parsedWeight,
+      targetWeight: weightPlan.target_weight,
+      weeklyPercent: weightPlan.weekly_percent,
+      mode: weightPlan.mode,
+      lifeStage: bcsResult.life_stage,
+      startAgeMonths: parsedAge,
+      gender,
+      activity,
+      season,
+      symptoms
+    });
 
-    /* 6️⃣ Response */
+    /* 6️⃣ Determine Active Feeding Targets */
+    const effectiveCalories =
+      weeklyProjection?.length > 0
+        ? weeklyProjection[0].calories
+        : calorieResult.finalDailyCalories;
+
+    const effectiveProtein =
+      weeklyProjection?.length > 0
+        ? weeklyProjection[0].protein_g
+        : macroResult.macro_grams.protein;
+
+    const effectiveCarbs =
+      weeklyProjection?.length > 0
+        ? weeklyProjection[0].carbs_g
+        : macroResult.macro_grams.carbs;
+
+    /* 7️⃣ Diet Plan (Aligned to Projection) */
+    const dietPlan = generateDietPlan({
+      macros: {
+        protein: effectiveProtein,
+        carbs: effectiveCarbs
+      },
+      calories: effectiveCalories,
+      bcsCategory: bcsResult.category,
+      preference: "non_veg"
+    });
+
+    /* 8️⃣ Response */
 
     return res.status(200).json({
       input: {
