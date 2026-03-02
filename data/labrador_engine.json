@@ -2864,9 +2864,9 @@
       "Fiber": 0.04
     },
     "Fat_Loss_Priority": {
-      "Protein": 0.32,
-      "Fat": 0.12,
-      "Carbs": 0.44,
+      "Protein": 0.38,
+      "Fat": 0.22,
+      "Carbs": 0.42,
       "Fiber": 0.06
     },
     "Weight_Gain_Priority": {
