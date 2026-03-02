@@ -191,16 +191,17 @@ export default async function handler(req, res) {
     /* 5️⃣ Weekly Simulation */
 
     const weeklyProjection = simulateJourney({
-      startWeight: parsedWeight,
-      targetWeight: weightPlan.target_weight || parsedWeight,
-      weeklyPercent: weightPlan.weekly_percent,
-      mode: weightPlan.mode,
-      lifeStage: bcsResult.life_stage,
-      gender,
-      activity,
-      season,
-      symptoms
-    });
+  startWeight: parsedWeight,
+  startAgeMonths: parsedAge,
+  targetWeight: weightPlan.target_weight || bcsResult.idealMid,
+  weeklyPercent: weightPlan.weekly_percent,
+  mode: weightPlan.mode,
+  lifeStage: bcsResult.life_stage,
+  gender,
+  activity,
+  season,
+  symptoms
+});
 
     /* 6️⃣ Response */
 
