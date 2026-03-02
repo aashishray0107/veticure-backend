@@ -20,7 +20,7 @@ const engineData = JSON.parse(
 );
 
 /* ----------------------------------
-   🔹 Weight Correction Engine
+   🔹 Adult Weight Correction
 ----------------------------------- */
 
 function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
@@ -85,6 +85,32 @@ function maintenance(weight, idealMid) {
 }
 
 /* ----------------------------------
+   🔹 Puppy Growth Modulation
+----------------------------------- */
+
+function generatePuppyCorrectionPlan(weight, category) {
+
+  if (category === "Severely_Obese" || category === "Obese") {
+    return {
+      mode: "Growth_Slowdown",
+      weekly_percent: 0.5
+    };
+  }
+
+  if (category === "Very_Thin" || category === "Underweight") {
+    return {
+      mode: "Growth_Acceleration",
+      weekly_percent: 0.5
+    };
+  }
+
+  return {
+    mode: "Optimal_Growth",
+    weekly_percent: 0
+  };
+}
+
+/* ----------------------------------
    🔹 API Handler
 ----------------------------------- */
 
@@ -111,14 +137,13 @@ export default async function handler(req, res) {
 
     const parsedWeight = parseFloat(weight);
     const parsedAge = parseInt(age);
+    const isPuppy = parsedAge <= 12;
 
     if (isNaN(parsedWeight) || isNaN(parsedAge)) {
       return res.status(400).json({ error: "Invalid numeric input" });
     }
 
-    /* --------------------------
-       1️⃣ BCS
-    -------------------------- */
+    /* 1️⃣ BCS */
 
     const bcsResult = calculateBCS(
       parsedWeight,
@@ -126,19 +151,24 @@ export default async function handler(req, res) {
       gender
     );
 
-    /* --------------------------
-       2️⃣ Weight Plan
-    -------------------------- */
+    /* 2️⃣ Weight Plan */
 
-    const weightPlan = generateWeightCorrectionPlan(
-      parsedWeight,
-      bcsResult.idealMid,
-      bcsResult.estimatedBCS
-    );
+    let weightPlan;
 
-    /* --------------------------
-       3️⃣ Calories
-    -------------------------- */
+    if (isPuppy) {
+      weightPlan = generatePuppyCorrectionPlan(
+        parsedWeight,
+        bcsResult.category
+      );
+    } else {
+      weightPlan = generateWeightCorrectionPlan(
+        parsedWeight,
+        bcsResult.idealMid,
+        bcsResult.estimatedBCS
+      );
+    }
+
+    /* 3️⃣ Calories */
 
     const calorieResult = calculateCalories({
       weight: parsedWeight,
@@ -150,9 +180,7 @@ export default async function handler(req, res) {
       symptoms
     });
 
-    /* --------------------------
-       4️⃣ Macros
-    -------------------------- */
+    /* 4️⃣ Macros */
 
     const macroResult = calculateMacros({
       calories: calorieResult.finalDailyCalories,
@@ -160,13 +188,11 @@ export default async function handler(req, res) {
       lifeStage: bcsResult.life_stage
     });
 
-    /* --------------------------
-       5️⃣ Weekly Simulation
-    -------------------------- */
+    /* 5️⃣ Weekly Simulation */
 
     const weeklyProjection = simulateJourney({
       startWeight: parsedWeight,
-      targetWeight: weightPlan.target_weight,
+      targetWeight: weightPlan.target_weight || parsedWeight,
       weeklyPercent: weightPlan.weekly_percent,
       mode: weightPlan.mode,
       lifeStage: bcsResult.life_stage,
@@ -176,9 +202,7 @@ export default async function handler(req, res) {
       symptoms
     });
 
-    /* --------------------------
-       6️⃣ Final Response
-    -------------------------- */
+    /* 6️⃣ Response */
 
     return res.status(200).json({
       input: {
