@@ -7,7 +7,7 @@ import fs from "fs";
 import path from "path";
 
 /* ----------------------------------
-   🔹 Load JSON
+   🔹 Load Engine Data
 ----------------------------------- */
 
 const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
@@ -21,7 +21,7 @@ const engineData = JSON.parse(
 );
 
 /* ----------------------------------
-   🔹 Adult Weight Correction
+   🔹 Weight Correction (Adult)
 ----------------------------------- */
 
 function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
@@ -36,10 +36,9 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
   const strategy = config.BCS_Based_Strategy[String(finalBCS)];
   if (!strategy) return maintenance(weight, idealMid);
 
-  const mode = strategy.mode;
-  const weeklyPercent = strategy.weekly_percent || 0;
+  const { mode, weekly_percent = 0 } = strategy;
 
-  if (!weeklyPercent || mode === "Maintenance") {
+  if (!weekly_percent || mode === "Maintenance") {
     return maintenance(weight, idealMid);
   }
 
@@ -50,7 +49,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
 
   if (difference <= 0) return maintenance(weight, idealMid);
 
-  const weeklyChange = weight * (weeklyPercent / 100);
+  const weeklyChange = weight * (weekly_percent / 100);
   const rawWeeks = difference / weeklyChange;
 
   const weeks =
@@ -62,7 +61,7 @@ function generateWeightCorrectionPlan(weight, idealMid, finalBCS) {
     mode,
     current_weight: Number(weight.toFixed(2)),
     target_weight: Number(idealMid.toFixed(2)),
-    weekly_percent: weeklyPercent,
+    weekly_percent,
     weekly_change: Number(weeklyChange.toFixed(2)),
     estimated_weeks_to_goal: weeks > 0 ? weeks : 0
   };
@@ -80,15 +79,15 @@ function maintenance(weight, idealMid) {
 }
 
 /* ----------------------------------
-   🔹 Puppy Growth Modulation
+   🔹 Puppy Adjustment
 ----------------------------------- */
 
-function generatePuppyCorrectionPlan(weight, category) {
-  if (category === "Severely_Obese" || category === "Obese") {
+function generatePuppyCorrectionPlan(category) {
+  if (["Severely_Obese", "Obese"].includes(category)) {
     return { mode: "Growth_Slowdown", weekly_percent: 0.5 };
   }
 
-  if (category === "Very_Thin" || category === "Underweight") {
+  if (["Very_Thin", "Underweight"].includes(category)) {
     return { mode: "Growth_Acceleration", weekly_percent: 0.5 };
   }
 
@@ -116,8 +115,21 @@ export default async function handler(req, res) {
       symptoms = []
     } = req.body || {};
 
+    if (!weight || !age) {
+      return res.status(400).json({ error: "Missing weight or age" });
+    }
+
+    const parsedWeight = Number(weight);
+    const parsedAge = Number(age);
+
+    if (isNaN(parsedWeight) || isNaN(parsedAge)) {
+      return res.status(400).json({ error: "Invalid numeric input" });
+    }
+
+    const isPuppy = parsedAge <= 12;
+
     /* ----------------------------------
-       🔹 Symptom Whitelist Filtering
+       🔹 Symptom Whitelist
     ----------------------------------- */
 
     const allowedSymptoms = [
@@ -129,21 +141,9 @@ export default async function handler(req, res) {
       "low_energy"
     ];
 
-    const filteredSymptoms = (symptoms || []).filter(s =>
+    const filteredSymptoms = symptoms.filter(s =>
       allowedSymptoms.includes(s)
     );
-
-    if (!weight || !age) {
-      return res.status(400).json({ error: "Missing weight or age" });
-    }
-
-    const parsedWeight = parseFloat(weight);
-    const parsedAge = parseInt(age);
-    const isPuppy = parsedAge <= 12;
-
-    if (isNaN(parsedWeight) || isNaN(parsedAge)) {
-      return res.status(400).json({ error: "Invalid numeric input" });
-    }
 
     /* ----------------------------------
        🔹 1️⃣ BCS
@@ -159,20 +159,13 @@ export default async function handler(req, res) {
        🔹 2️⃣ Weight Plan
     ----------------------------------- */
 
-    let weightPlan;
-
-    if (isPuppy) {
-      weightPlan = generatePuppyCorrectionPlan(
-        parsedWeight,
-        bcsResult.category
-      );
-    } else {
-      weightPlan = generateWeightCorrectionPlan(
-        parsedWeight,
-        bcsResult.idealMid,
-        bcsResult.estimatedBCS
-      );
-    }
+    const weightPlan = isPuppy
+      ? generatePuppyCorrectionPlan(bcsResult.category)
+      : generateWeightCorrectionPlan(
+          parsedWeight,
+          bcsResult.idealMid,
+          bcsResult.estimatedBCS
+        );
 
     /* ----------------------------------
        🔹 3️⃣ Calories
@@ -189,7 +182,7 @@ export default async function handler(req, res) {
     });
 
     /* ----------------------------------
-       🔹 4️⃣ Macros (Base)
+       🔹 4️⃣ Base Macros
     ----------------------------------- */
 
     const macroResult = calculateMacros({
@@ -199,7 +192,7 @@ export default async function handler(req, res) {
     });
 
     /* ----------------------------------
-       🔹 5️⃣ Weekly Projection FIRST
+       🔹 5️⃣ Weekly Projection
     ----------------------------------- */
 
     const weeklyProjection = simulateJourney({
@@ -215,32 +208,22 @@ export default async function handler(req, res) {
       symptoms: filteredSymptoms
     });
 
-    /* ----------------------------------
-       🔹 6️⃣ Effective Targets
-    ----------------------------------- */
+    const activeWeek = weeklyProjection?.[0];
 
     const effectiveCalories =
-      weeklyProjection?.length > 0
-        ? weeklyProjection[0].calories
-        : calorieResult.finalDailyCalories;
+      activeWeek?.calories ?? calorieResult.finalDailyCalories;
 
     const effectiveProtein =
-      weeklyProjection?.length > 0
-        ? weeklyProjection[0].protein_g
-        : macroResult.macro_grams.protein;
+      activeWeek?.protein_g ?? macroResult.macro_grams.protein;
 
     const effectiveFat =
-      weeklyProjection?.length > 0
-        ? weeklyProjection[0].fat_g
-        : macroResult.macro_grams.fat;
+      activeWeek?.fat_g ?? macroResult.macro_grams.fat;
 
     const effectiveCarbs =
-      weeklyProjection?.length > 0
-        ? weeklyProjection[0].carbs_g
-        : macroResult.macro_grams.carbs;
+      activeWeek?.carbs_g ?? macroResult.macro_grams.carbs;
 
     /* ----------------------------------
-       🔹 7️⃣ Diet Plan
+       🔹 6️⃣ Diet Plan
     ----------------------------------- */
 
     const dietPlan = generateDietPlan({
@@ -257,10 +240,10 @@ export default async function handler(req, res) {
     });
 
     /* ----------------------------------
-       🔹 8️⃣ Supplement Advisory
+       🔹 7️⃣ Supplement Advisory
     ----------------------------------- */
 
-    let supplementAdvisory = {
+    const supplementAdvisory = {
       omega3: { recommended: false }
     };
 
@@ -273,12 +256,12 @@ export default async function handler(req, res) {
       supplementAdvisory.omega3 = {
         recommended: true,
         reason: "Supports anti-inflammatory and metabolic function.",
-        note: "Consult veterinarian for appropriate EPA+DHA dosing based on body weight."
+        note: "Consult veterinarian for appropriate EPA+DHA dosing."
       };
     }
 
     /* ----------------------------------
-       🔹 9️⃣ Response
+       🔹 Response
     ----------------------------------- */
 
     return res.status(200).json({
