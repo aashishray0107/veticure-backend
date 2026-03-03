@@ -2499,13 +2499,10 @@
       "Apply_Only_If_Age_Matches": true,
       "Do_Not_Stack_Twice": true
     },
-    "Global_Adjustment_Control": {
-      "Max_Total_Positive_Adjustment": 0.4,
-      "Max_Total_Negative_Adjustment": -0.4,
-      "Stacking_Method": "Additive decimal stacking",
-      "Apply_Cap_After_All_Adjustments": true,
-      "Safety_Rule": "If cumulative adjustment exceeds cap, clamp to cap value"
-    },
+    "Global_Adjustment_Controller": {
+  "Engine_Role": "Reference_Only_Disabled_For_MVP",
+  "Active": false
+},
     "Final_Output_Block": {
       "Output_Field": "Final_kcal_per_day",
       "Single_Authoritative_Output": true,
@@ -2655,7 +2652,10 @@
       "months",
       "years"
     ],
-    "Reject_Null_Core_Inputs": true
+    "Reject_Null_Core_Inputs": true,
+    "Optional_Flags": [
+  "renal_support_required"
+]
   },
   "Engine_Integrity_Validation": {
     "No_Duplicate_Keys": true,
@@ -2742,18 +2742,9 @@
     }
   },
   "Execution_Order_Control": {
-    "Order": [
-      "RER_Calculation",
-      "MER_Application",
-      "Activity_Adjustment",
-      "Weight_Condition_Adjustment",
-      "Symptom_Adjustment",
-      "Seasonal_Adjustment"
-    ],
-    "Stacking_Type": "additive_percentage",
-    "Apply_Sequentially": true,
-    "No_Duplicate_Layer_Application": true
-  },
+  "Engine_Role": "Reference_Only_Disabled_For_MVP",
+  "Active": false
+},
   "Global_Adjustment_Cap": {
     "Max_Positive_Adjustment": 0.35,
     "Max_Negative_Adjustment": -0.35,
@@ -2773,19 +2764,9 @@
     "BCS_Final_Single_Category": true
   },
   "Global_Adjustment_Controller": {
-    "additive_decimal_sequence": true,
-    "max_total_positive_adjustment": 0.4,
-    "max_total_negative_adjustment": -0.4,
-    "strict_execution_order": [
-      "RER",
-      "MER",
-      "Activity",
-      "Weight_Condition",
-      "Symptom",
-      "Seasonal"
-    ],
-    "enforce_single_final_output": true
-  },
+  "Engine_Role": "Reference_Only_Disabled_For_MVP",
+  "Active": false
+},
   "Goal_Override_Controller": {
     "Execution_Position": "After_Weight_Condition_Adjustment_Before_Symptom_Adjustment",
     "Override_Strategy": "Controlled_Modifier_Layer",
@@ -2831,15 +2812,9 @@
     }
   },
   "Goal_Priority_Execution_Rules": {
-    "Step_1": "Calculate_Base_RER",
-    "Step_2": "Apply_MER",
-    "Step_3": "Apply_Weight_Condition_Adjustment",
-    "Step_4": "Apply_Goal_Override",
-    "Step_5": "Apply_Activity_Adjustment",
-    "Step_6": "Apply_Seasonal_Adjustment",
-    "Step_7": "Apply_Symptom_Override",
-    "Final_Safety_Check": "Enforce_Minimum_Safe_Calorie_Floor_And_Max_Safe_Cap"
-  },
+  "Engine_Role": "Reference_Only_Disabled_For_MVP",
+  "Active": false
+},
   "Goal_Safety_Guardrails": {
     "Max_Total_Adjustment_Cap": 0.3,
     "Prevent_Excessive_Deficit_Below_RER": true,
@@ -2851,30 +2826,30 @@
     ]
   },
   "Macronutrient_Ratio_Profiles": {
-    "Maintenance": {
-      "Protein": 0.38,
-      "Fat": 0.18,
-      "Carbs": 0.44,
-      "Fiber": 0.04
-    },
-    "Muscle_Build": {
-      "Protein": 0.30,
-      "Fat": 0.18,
-      "Carbs": 0.42,
-      "Fiber": 0.04
-    },
-    "Fat_Loss_Priority": {
-      "Protein": 0.38,
-      "Fat": 0.22,
-      "Carbs": 0.42,
-      "Fiber": 0.06
-    },
-    "Weight_Gain_Priority": {
-      "Protein": 0.28,
-      "Fat": 0.20,
-      "Carbs": 0.42,
-      "Fiber": 0.04
-    },
+  "Maintenance": {
+    "Protein": 0.30,
+    "Fat": 0.18,
+    "Carbs": 0.52,
+    "Fiber": 0.04
+  },
+  "Muscle_Build": {
+    "Protein": 0.32,
+    "Fat": 0.20,
+    "Carbs": 0.48,
+    "Fiber": 0.04
+  },
+  "Fat_Loss_Priority": {
+    "Protein": 0.38,
+    "Fat": 0.15,
+    "Carbs": 0.47,
+    "Fiber": 0.06
+  },
+  "Weight_Gain_Priority": {
+    "Protein": 0.28,
+    "Fat": 0.22,
+    "Carbs": 0.50,
+    "Fiber": 0.04
+  },
     "Nutrient_Minimum_Standards": {
       "Puppy": {
         "Protein_Min": 0.225,
@@ -2954,6 +2929,7 @@
     "Alignment_Statement_2": "Calcium safety values are NRC-aligned for large-breed puppies (3.0–4.5 g Ca per 1000 kcal ME during growth phases; Ca:P ratio 1.1:1 to 1.4:1)"
   },
   "Macro_Conversion_Engine": {
+    "Validation_Rule": "Reject if Protein + Fat + Carbs != 1.0 (exact match required)",
     "Execution_Position": "After Master_Calorie_Adjustment_Pipeline, Before Weekly_Meal_Cycle_System.Allocation_Priority",
     "ME_Factors_kcal_per_g": {
       "Protein": 4,
@@ -2961,12 +2937,18 @@
       "Carbohydrate": 4
     },
     "Formulas": {
-      "Protein_g": "Final_kcal_per_day * Selected_Macro_Profile.Protein / 4",
-      "Fat_g": "Final_kcal_per_day * Selected_Macro_Profile.Fat / 9",
-      "Carbohydrate_g": "Final_kcal_per_day * Selected_Macro_Profile.Carbs / 4",
-      "Residual_Reconciliation": "If total_energy_fraction != 1.0, adjust Carbohydrate_g by difference (±2% tolerance allowed)",
-      "Rounding_Rule": "Round to nearest integer gram only after all allocations; no intermediate rounding"
-    },
+  "Energy_Fraction_Check": "Selected_Macro_Profile.Protein + Selected_Macro_Profile.Fat + Selected_Macro_Profile.Carbs must equal 1.0 exactly (hard validation before calculation)",
+
+  "Protein_g": "Final_kcal_per_day * Selected_Macro_Profile.Protein / 4",
+
+  "Fat_g": "Final_kcal_per_day * Selected_Macro_Profile.Fat / 9",
+
+  "Carbohydrate_g": "Final_kcal_per_day * Selected_Macro_Profile.Carbs / 4",
+
+  "Fiber_g": "Final_kcal_per_day * Selected_Macro_Profile.Fiber / 4 (treated as volumetric allocation; not included in energy fraction check)",
+
+  "Rounding_Rule": "Round to nearest integer gram only after all macro allocations complete; no intermediate rounding"
+},
     "Selected_Macro_Profile_Source": "Macronutrient_Ratio_Profiles based on Goal_Override_Controller or default Maintenance",
     "Reference": "Scientific_Reference_Sources.NRC_Reference (Metabolizable Energy Factors)"
   },
@@ -3137,12 +3119,21 @@
       1.0,
       2.0
     ],
+    "Hard_Guard": "If renal_support_required != true, skip entire phosphorus control module",
     "Phosphorus_Ceiling_Trigger": "If Total_Phosphorus_g * 1000 / Final_kcal_per_day > 0.5",
     "Phosphorus_per_1000_kcal_Calc": "Total_Phosphorus_g * 1000 / Final_kcal_per_day",
     "Auto_Detection_Of_Excess": "If Phosphorus_per_1000_kcal > 0.5, trigger substitution",
     "Controlled_Protein_Source_Substitution_Logic": "Replace high-P protein (e.g., Chicken liver boiled) with low-P alternative from Food_Composition_Database (e.g., Cod fish boiled deboned); Recalculate Total_Phosphorus_g; Repeat until Phosphorus_per_1000_kcal <= 0.5 or no low-P options left (then reject)",
     "Deterministic_Phosphorus_Reduction_Rule": "Reduce portion of highest P-density ingredient by 0.1 decrements until compliant or min portion reached",
-    "Lifecycle_Activation": "Activate if Lifecycle_Growth_Model_20_Stages.Stage_Name in ['Early_Senior', 'Senior', 'Geriatric']",
+    "Activation_Condition": {
+  "Require_Renal_Flag": true,
+  "Lifecycle_Stage_Match": [
+    "Early_Senior",
+    "Senior",
+    "Geriatric"
+  ],
+  "Logic": "Activate only if renal_support_required == true AND lifecycle stage matches"
+},
     "Integrity_Requirements": {
       "No_Calcium_Stacking": true,
       "No_Phosphorus_Auto_Supplementation": true,
@@ -3763,5 +3754,98 @@
     "notes": "Soothing for GI irritation"
   }
 }
-    }
+    },
+    "Simple_Persistence_Layer_v1": {
+  "Mode": "MVP_Minimal",
+  
+  "Pet_Profile": {
+    "pet_id": "string",
+    "breed": "string",
+    "age_months": "integer",
+    "current_weight_kg": "number",
+    "previous_weight_kg": "number",
+    "activity_level": "string",
+    "goal": "string",
+    "bcs_last": "integer",
+    "renal_support_required": "boolean",
+    "last_updated_date": "ISO_date"
+  },
+
+  "Weight_History_Config": {
+    "store_last_only": true,
+    "optional_full_history_array": false
+  },
+
+  "Recalculation_Trigger": {
+    "On_Weight_Update": [
+      "Store previous_weight_kg",
+      "Update current_weight_kg",
+      "Run BCS_Automatic_Detection_Logic",
+      "Run Master_Calorie_Adjustment_Pipeline",
+      "Run Macro_Conversion_Engine"
+    ],
+    "On_Goal_Update": [
+      "Run Goal_Override_Controller",
+      "Recalculate Final_kcal_per_day",
+      "Recalculate macros"
+    ],
+    "On_Activity_Update": [
+      "Recalculate Final_kcal_per_day"
+    ]
+  },
+
+  "Integrity_Rules": {
+    "Never_Modify_Core_Engines": true,
+    "Only_Trigger_Recalculation": true,
+    "Deterministic_Output_Must_Remain": true
+  }
+},
+"Deterministic_Gram_Allocator_v1": {
+  "Execution_Position": "After Macro_Conversion_Engine",
+
+  "Allocation_Order": [
+    "Allocate_Primary_Animal_Protein",
+    "Allocate_Fat_From_Protein",
+    "Add_Additional_Fat_If_Required",
+    "Allocate_Carb_Base",
+    "Allocate_Fiber_Vegetable"
+  ],
+
+  "Protein_Allocation_Rule": {
+    "Primary_Source": "First allowed protein from Diet_Rotation_Config.non_veg_proteins",
+    "Max_Percentage_Of_Meal": 0.5,
+    "Adjustment_Method": "Increase grams until Protein_g target met"
+  },
+
+  "Fat_Adjustment_Rule": {
+    "If_Fat_From_Protein < Target_Fat_g": "Add Coconut oil incrementally",
+    "Increment_Step_g": 1,
+    "Stop_When": "Fat_g target reached"
+  },
+
+  "Carb_Allocation_Rule": {
+    "Primary_Carb_Source": "Rotate deterministically using week_number % carb_sources_length",
+    "Fill_Remaining_Calories": true
+  },
+
+  "Fiber_Allocation_Rule": {
+    "Mandatory_Daily": true,
+    "Max_Percentage_Constraint": "Respect vegetable_safety_list.max_pct",
+    "Low_Calorie_First": true
+  },
+
+  "Validation_Layer": [
+    "Run Mineral_Computation_Engine",
+    "Run Calcium_Supplementation_Module if growth",
+    "Run Senior_Phosphorus_Control_Module if renal flag true",
+    "Run Dry_Matter_Validation_Engine",
+    "Run Macronutrient_Safety_Validation"
+  ],
+
+  "Determinism_Guarantee": {
+    "No_Random_Selection": true,
+    "Fixed_Rotation_Formula": "index = week_number % list_length",
+    "Same_Input_Same_Output": true
+  }
+}
   }
