@@ -5,7 +5,10 @@ import path from "path";
    🔹 Load JSON
 ----------------------------------- */
 
-const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
+const dataPath = path.join(
+  process.cwd(),
+  "data/labrador_engine.json"
+);
 
 if (!fs.existsSync(dataPath)) {
   throw new Error("labrador_engine.json not found in /data folder");
