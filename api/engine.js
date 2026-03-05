@@ -130,10 +130,16 @@ export default async function handler(req, res) {
     /* ---------- PROGRESSION ---------- */
 
     const journey = simulateJourney({
-      startWeight: weight,
-      idealWeight: bcs.idealWeight,
-      strategy: strategyMode
-    });
+  startWeight: weight,
+  targetWeight: bcs.idealWeight,
+  weeklyPercent: strategyMode === "Fat_Loss" ? 1.5 : 2,
+  mode: strategyMode,
+  lifeStage: "Adult",
+  ageMonths: age,
+  activity,
+  season,
+  symptoms
+});
 
     const journeySummary = summarizeJourney(journey, weight, bcs.idealWeight);
 
