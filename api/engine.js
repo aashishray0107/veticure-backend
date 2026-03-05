@@ -27,7 +27,7 @@ function evaluateBCS(weight, idealWeight) {
 
 /* ------------------ STRATEGY ENGINE ------------------ */
 
-function determineStrategy(bcsCategory, goal = "Maintenance") {
+function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Moderate") {
 
   if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
     return "Fat_Loss";
@@ -37,9 +37,14 @@ function determineStrategy(bcsCategory, goal = "Maintenance") {
     return "Weight_Gain";
   }
 
+  /* Athletic dogs can enter muscle building */
+
+  if (bcsCategory === "Ideal" && activity === "High") {
+    return "Muscle_Build";
+  }
+
   return goal;
 }
-
 /* ---------- JOURNEY SUMMARY ---------- */
 
 function summarizeJourney(journey, startWeight, targetWeight) {
@@ -92,8 +97,7 @@ export default async function handler(req, res) {
 
     /* ---------- STRATEGY ---------- */
 
-    const strategyMode = determineStrategy(bcs.category, goal);
-
+const strategyMode = determineStrategy(bcs.category, goal, activity);
     /* ---------- CALORIES ---------- */
 
     const calorieResult = calculateCalories({
@@ -114,18 +118,40 @@ export default async function handler(req, res) {
       lifeStage: "Adult"
     });
 
+
     /* ---------- PROGRESSION ---------- */
 
-    const journey = simulateJourney({
+let weeklyPercent;
+
+if (strategyMode === "Fat_Loss") {
+  weeklyPercent = 1.5;
+}
+else if (strategyMode === "Weight_Gain") {
+  weeklyPercent = 2.0;
+}
+else if (strategyMode === "Muscle_Build") {
+  weeklyPercent = 0.8;
+}
+else {
+  weeklyPercent = 0;
+}
+
+const journey = simulateJourney({
   startWeight: weight,
   targetWeight: bcs.idealWeight,
-  weeklyPercent: 1.5,
+  weeklyPercent,
   mode: strategyMode,
-  lifeStage: "Adult",
-  calories: calorieResult.finalDailyCalories
+  lifeStage,
+  activity,
+  season,
+  symptoms,
 });
 
-    const journeySummary = summarizeJourney(journey, weight, bcs.idealWeight);
+const journeySummary = summarizeJourney(
+  journey,
+  weight,
+  bcs.idealWeight
+);
 
     /* ---------- DIET ---------- */
 
