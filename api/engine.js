@@ -29,7 +29,18 @@ function evaluateBCS(weight, idealWeight) {
 
 function determineStrategy(bcsCategory, goal = "Maintenance") {
 
-  /* ---------- JOURNEY SUMMARY ---------- */
+  if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
+    return "Fat_Loss";
+  }
+
+  if (bcsCategory === "Underweight" || bcsCategory === "Severely_Underweight") {
+    return "Weight_Gain";
+  }
+
+  return goal;
+}
+
+/* ---------- JOURNEY SUMMARY ---------- */
 
 function summarizeJourney(journey, startWeight, idealWeight) {
 
@@ -61,31 +72,14 @@ function summarizeJourney(journey, startWeight, idealWeight) {
   return {
 
     start_weight: startWeight,
-
     target_weight: idealWeight,
-
     estimated_weeks: weeks,
-
     total_weight_change: totalChange,
-
     total_percent_change: percentChange,
-
     weekly_percent_changes: weeklyPercentChanges
 
   };
 
-}
-
-  if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
-    return "Fat_Loss";
-  }
-
-  if (bcsCategory === "Underweight" || bcsCategory === "Severely_Underweight") {
-    return "Weight_Gain";
-  }
-
-  // only allowed if BCS ideal
-  return goal;
 }
 
 /* ------------------ API HANDLER ------------------ */
