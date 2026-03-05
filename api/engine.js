@@ -29,6 +29,53 @@ function evaluateBCS(weight, idealWeight) {
 
 function determineStrategy(bcsCategory, goal = "Maintenance") {
 
+  /* ---------- JOURNEY SUMMARY ---------- */
+
+function summarizeJourney(journey, startWeight, idealWeight) {
+
+  if (!Array.isArray(journey) || journey.length === 0) {
+    return null;
+  }
+
+  const weeks = journey.length;
+  const finalWeight = journey[journey.length - 1].weight;
+
+  const totalChange = Number((finalWeight - startWeight).toFixed(2));
+
+  const percentChange = Number(((totalChange / startWeight) * 100).toFixed(2));
+
+  const weeklyPercentChanges = [];
+
+  let prev = startWeight;
+
+  for (const w of journey) {
+
+    const pct = ((w.weight - prev) / prev) * 100;
+
+    weeklyPercentChanges.push(Number(pct.toFixed(2)));
+
+    prev = w.weight;
+
+  }
+
+  return {
+
+    start_weight: startWeight,
+
+    target_weight: idealWeight,
+
+    estimated_weeks: weeks,
+
+    total_weight_change: totalChange,
+
+    total_percent_change: percentChange,
+
+    weekly_percent_changes: weeklyPercentChanges
+
+  };
+
+}
+
   if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
     return "Fat_Loss";
   }
@@ -94,6 +141,8 @@ export default async function handler(req, res) {
       strategy: strategyMode
     });
 
+    const journeySummary = summarizeJourney(journey, weight, bcs.idealWeight);
+
     /* ---------- DIET ---------- */
 
     const diet = generateDietPlan({
@@ -137,6 +186,8 @@ export default async function handler(req, res) {
       strategy_used: strategyMode,
 
       weight_progression: journey,
+
+      weight_progress_guidelines: journeySummary,
 
       calorie_report: calorieResult,
 
