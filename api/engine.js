@@ -89,6 +89,20 @@ export default async function handler(req, res) {
       symptoms = []
     } = req.body;
 
+    /* ---------- LIFE STAGE DETECTION ---------- */
+
+let lifeStage;
+
+if (age < 12) {
+  lifeStage = "Puppy";
+}
+else if (age >= 12 && age < 96) {
+  lifeStage = "Adult";
+}
+else {
+  lifeStage = "Senior";
+}
+
     /* ---------- BCS ---------- */
 
     const idealWeight = 32; // labrador reference
