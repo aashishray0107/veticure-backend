@@ -2,8 +2,9 @@ import { generateDietPlan } from "../lib/dietEngine.js";
 import { simulateJourney } from "../lib/progressionEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
 import { calculateMacros } from "../lib/macroEngine.js";
+import { saveReport } from "../lib/pocketbase.js";
 
-export default function handler(req, res) {
+export default async function handler(req, res) {
 
   try {
 
@@ -38,6 +39,16 @@ export default function handler(req, res) {
       bodyWeight: weight,
       symptoms
     });
+
+    await saveReport({
+  calories: calorieResult.finalDailyCalories,
+  hydration_ml: calorieResult.hydration || 0,
+  protein_g: macroResult.macro_grams.protein,
+  fat_g: macroResult.macro_grams.fat,
+  carbs_g: macroResult.macro_grams.carbs,
+  strategy: "Maintenance",
+  bcs_category: "Ideal"
+});
 
     return res.status(200).json({
       calorie_report: calorieResult,
