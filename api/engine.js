@@ -201,25 +201,25 @@ const journeySummary = summarizeJourney(
 
     return res.status(200).json({
 
-      bcs_report: {
-        ideal_weight: bcs.idealWeight,
-        weight_deviation_percent: bcs.deviationPercent,
-        bcs_category: bcs.category
-      },
+  bcs_report: {
+    ideal_weight: bcs.idealWeight,
+    weight_deviation_percent: bcs.deviationPercent,
+    bcs_category: bcs.category
+  },
 
-      strategy_used: strategyMode,
+  strategy_used: strategyMode,
 
-      weight_progression: journey,
+  calorie_report: calorieResult,
 
-      weight_progress_guidelines: journeySummary,
+  macro_report: macroResult,
 
-      calorie_report: calorieResult,
+  weight_progress_guidelines: journeySummary,
 
-      macro_report: macroResult,
+  weight_progression: journey,
 
-      weekly_diet_plan: diet
+  weekly_diet_plan: diet
 
-    });
+});
 
   } catch (err) {
 
