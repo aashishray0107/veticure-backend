@@ -19,11 +19,12 @@ const engineData = JSON.parse(
   fs.readFileSync(dataPath, "utf-8")
 );
 
-/* ---------------- LIFE STAGE ENGINE ---------------- */
+/* ---------------- LIFE STAGE ---------------- */
 
 function detectLifeStage(ageMonths) {
 
   if (ageMonths < 12) return "Puppy";
+
   if (ageMonths < 96) return "Adult";
 
   return "Senior";
@@ -36,7 +37,7 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
   const ranges = engineData.Weight_By_Age;
 
   if (!ranges || !Array.isArray(ranges)) {
-    throw new Error("Weight_By_Age dataset missing or invalid");
+    throw new Error("Weight_By_Age dataset missing");
   }
 
   const g = gender.toLowerCase();
@@ -46,47 +47,48 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
     const minAge = r.min_age_months;
     const maxAge = r.max_age_months;
 
-    const inRange =
+    const match =
       ageMonths >= minAge &&
       (maxAge === null || ageMonths <= maxAge);
 
-    if (inRange) {
+    if (!match) continue;
 
-      const male = r.data?.Male_kg;
-      const female = r.data?.Female_kg;
+    const male = r.data?.Male_kg;
+    const female = r.data?.Female_kg;
 
-      if (!male || !female) {
-        throw new Error("Weight range data malformed");
-      }
-
-      let minWeight;
-      let maxWeight;
-
-      if (g === "male") {
-        minWeight = male[0];
-        maxWeight = male[1];
-      }
-      else if (g === "female") {
-        minWeight = female[0];
-        maxWeight = female[1];
-      }
-      else {
-        minWeight = (male[0] + female[0]) / 2;
-        maxWeight = (male[1] + female[1]) / 2;
-      }
-
-      const ideal = (minWeight + maxWeight) / 2;
-
-      return Number(ideal.toFixed(1));
+    if (!male || !female) {
+      throw new Error("Weight range data malformed");
     }
+
+    let minWeight;
+    let maxWeight;
+
+    if (g === "male") {
+      minWeight = male[0];
+      maxWeight = male[1];
+    }
+
+    else if (g === "female") {
+      minWeight = female[0];
+      maxWeight = female[1];
+    }
+
+    else {
+      minWeight = (male[0] + female[0]) / 2;
+      maxWeight = (male[1] + female[1]) / 2;
+    }
+
+    const ideal = (minWeight + maxWeight) / 2;
+
+    return Number(ideal.toFixed(1));
   }
+
+  /* fallback last range */
 
   const last = ranges[ranges.length - 1];
 
   const male = last.data.Male_kg;
   const female = last.data.Female_kg;
-
-  const g = gender.toLowerCase();
 
   let minWeight;
   let maxWeight;
@@ -95,10 +97,12 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
     minWeight = male[0];
     maxWeight = male[1];
   }
+
   else if (g === "female") {
     minWeight = female[0];
     maxWeight = female[1];
   }
+
   else {
     minWeight = (male[0] + female[0]) / 2;
     maxWeight = (male[1] + female[1]) / 2;
@@ -128,6 +132,25 @@ function evaluateBCS(weight, idealWeight) {
   };
 }
 
+/* ---------------- STRATEGY ENGINE ---------------- */
+
+function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Moderate") {
+
+  if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
+    return "Fat_Loss";
+  }
+
+  if (bcsCategory === "Underweight" || bcsCategory === "Severely_Underweight") {
+    return "Weight_Gain";
+  }
+
+  if (bcsCategory === "Ideal" && activity === "High") {
+    return "Muscle_Build";
+  }
+
+  return goal;
+}
+
 /* ---------------- API HANDLER ---------------- */
 
 export default async function handler(req, res) {
@@ -135,13 +158,15 @@ export default async function handler(req, res) {
   try {
 
     const {
+
       weight,
       age,
       gender = "unknown",
-      activity,
-      season,
+      activity = "Moderate",
+      season = "Normal",
       goal = "Maintenance",
       symptoms = []
+
     } = req.body;
 
     if (!weight || weight <= 0)
@@ -156,11 +181,8 @@ export default async function handler(req, res) {
 
     const bcs = evaluateBCS(weight, idealWeight);
 
-    const strategyMode = determineStrategy(
-      bcs.category,
-      goal,
-      activity
-    );
+    const strategyMode =
+      determineStrategy(bcs.category, goal, activity);
 
     const calorieResult = calculateCalories({
       weight,
@@ -178,17 +200,10 @@ export default async function handler(req, res) {
       lifeStage
     });
 
-    const weeklyPercent = getWeeklyChangeRate({
-      lifeStage,
-      strategyMode,
-      deviationPercent: bcs.deviationPercent,
-      activity
-    });
-
     const journey = simulateJourney({
       startWeight: weight,
       targetWeight: idealWeight,
-      weeklyPercent,
+      weeklyPercent: 1,
       mode: strategyMode,
       lifeStage,
       ageMonths: age,
@@ -196,12 +211,6 @@ export default async function handler(req, res) {
       season,
       symptoms
     });
-
-    const journeySummary = summarizeJourney(
-      journey,
-      weight,
-      idealWeight
-    );
 
     const diet = generateDietPlan({
       macros: macroResult.macro_grams,
@@ -225,11 +234,10 @@ export default async function handler(req, res) {
 
       macro_report: macroResult,
 
-      weight_progress_guidelines: journeySummary,
-
       weight_progression: journey,
 
       weekly_diet_plan: diet
+
     });
 
   }
