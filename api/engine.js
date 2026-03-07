@@ -39,6 +39,8 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
     throw new Error("Weight_By_Age dataset missing or invalid");
   }
 
+  const g = gender.toLowerCase();
+
   for (const r of ranges) {
 
     const minAge = r.min_age_months;
@@ -60,16 +62,15 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
       let minWeight;
       let maxWeight;
 
-      if (gender === "male") {
+      if (g === "male") {
         minWeight = male[0];
         maxWeight = male[1];
       }
-      else if (gender === "female") {
+      else if (g === "female") {
         minWeight = female[0];
         maxWeight = female[1];
       }
       else {
-        /* neutral fallback if gender unknown */
         minWeight = (male[0] + female[0]) / 2;
         maxWeight = (male[1] + female[1]) / 2;
       }
@@ -80,21 +81,21 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
     }
   }
 
-  /* fallback to last range */
-
   const last = ranges[ranges.length - 1];
 
   const male = last.data.Male_kg;
   const female = last.data.Female_kg;
 
+  const g = gender.toLowerCase();
+
   let minWeight;
   let maxWeight;
 
-  if (gender === "male") {
+  if (g === "male") {
     minWeight = male[0];
     maxWeight = male[1];
   }
-  else if (gender === "female") {
+  else if (g === "female") {
     minWeight = female[0];
     maxWeight = female[1];
   }
@@ -127,125 +128,6 @@ function evaluateBCS(weight, idealWeight) {
   };
 }
 
-/* ---------------- STRATEGY ENGINE ---------------- */
-
-function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Moderate") {
-
-  if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
-    return "Fat_Loss";
-  }
-
-  if (bcsCategory === "Underweight" || bcsCategory === "Severely_Underweight") {
-    return "Weight_Gain";
-  }
-
-  if (bcsCategory === "Ideal" && activity === "High") {
-    return "Muscle_Build";
-  }
-
-  return goal;
-}
-
-/* ---------------- WEEKLY CHANGE ENGINE ---------------- */
-
-function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activity }) {
-
-  const deviation = Math.abs(deviationPercent);
-
-  /* ---------- PUPPY ---------- */
-
-  if (lifeStage === "Puppy") {
-
-    if (deviationPercent <= -20) return 2.0;
-    if (deviationPercent < -5) return 1.5;
-    if (deviationPercent <= 5) return 1.0;
-    if (deviationPercent <= 20) return 0.5;
-
-    return 0.2;
-  }
-
-  /* ---------- ADULT ---------- */
-
-  if (lifeStage === "Adult") {
-
-    if (strategyMode === "Fat_Loss") {
-
-      if (deviation >= 35) return 1.0;
-      if (deviation >= 20) return 1.3;
-
-      return 1.5;
-    }
-
-    if (strategyMode === "Weight_Gain") {
-
-      if (deviation >= 35) return 2.5;
-      if (deviation >= 20) return 2.0;
-
-      return 1.5;
-    }
-
-    if (strategyMode === "Muscle_Build") {
-
-      if (activity === "High") return 0.8;
-
-      return 0.5;
-    }
-  }
-
-  /* ---------- SENIOR ---------- */
-
-  if (lifeStage === "Senior") {
-
-    if (strategyMode === "Fat_Loss") {
-
-      if (deviation >= 35) return 0.6;
-      if (deviation >= 20) return 0.8;
-
-      return 1.0;
-    }
-
-    if (strategyMode === "Weight_Gain") {
-
-      if (deviation >= 20) return 1.5;
-
-      return 1.0;
-    }
-  }
-
-  return 0;
-}
-
-/* ---------------- JOURNEY SUMMARY ---------------- */
-
-function summarizeJourney(journey, startWeight, targetWeight) {
-
-  if (!Array.isArray(journey) || journey.length === 0) return null;
-
-  const finalWeight = journey[journey.length - 1].projected_weight;
-
-  const totalWeightChange = Number(
-    (finalWeight - startWeight).toFixed(2)
-  );
-
-  const totalPercentChange = Number(
-    ((totalWeightChange / startWeight) * 100).toFixed(2)
-  );
-
-  const weeklyPercentChanges = journey.map(
-    w => w.weekly_percent_change
-  );
-
-  return {
-
-    start_weight: startWeight,
-    target_weight: targetWeight,
-    estimated_weeks: journey.length,
-    total_weight_change: totalWeightChange,
-    total_percent_change: totalPercentChange,
-    weekly_percent_changes: weeklyPercentChanges
-  };
-}
-
 /* ---------------- API HANDLER ---------------- */
 
 export default async function handler(req, res) {
@@ -255,6 +137,7 @@ export default async function handler(req, res) {
     const {
       weight,
       age,
+      gender = "unknown",
       activity,
       season,
       goal = "Maintenance",
@@ -262,14 +145,14 @@ export default async function handler(req, res) {
     } = req.body;
 
     if (!weight || weight <= 0)
-  throw new Error("Invalid weight");
+      throw new Error("Invalid weight");
 
-if (!age || age < 0)
-  throw new Error("Invalid age");
+    if (!age || age < 0)
+      throw new Error("Invalid age");
 
     const lifeStage = detectLifeStage(age);
 
-    const idealWeight = calculateIdealWeight(age);
+    const idealWeight = calculateIdealWeight(age, gender);
 
     const bcs = evaluateBCS(weight, idealWeight);
 
@@ -280,7 +163,6 @@ if (!age || age < 0)
     );
 
     const calorieResult = calculateCalories({
-
       weight,
       ageMonths: age,
       activity,
@@ -288,28 +170,22 @@ if (!age || age < 0)
       symptoms,
       lifeStage,
       bcsCategory: bcs.category
-
     });
 
     const macroResult = calculateMacros({
-
       calories: calorieResult.finalDailyCalories,
       strategyMode,
       lifeStage
-
     });
 
     const weeklyPercent = getWeeklyChangeRate({
-
       lifeStage,
       strategyMode,
       deviationPercent: bcs.deviationPercent,
       activity
-
     });
 
     const journey = simulateJourney({
-
       startWeight: weight,
       targetWeight: idealWeight,
       weeklyPercent,
@@ -319,7 +195,6 @@ if (!age || age < 0)
       activity,
       season,
       symptoms
-
     });
 
     const journeySummary = summarizeJourney(
@@ -329,33 +204,12 @@ if (!age || age < 0)
     );
 
     const diet = generateDietPlan({
-
       macros: macroResult.macro_grams,
       calories: calorieResult.finalDailyCalories,
       bcsCategory: bcs.category,
       bodyWeight: weight,
       symptoms
-
     });
-
-    try {
-
-      await saveReport({
-
-        calories: calorieResult.finalDailyCalories,
-        hydration_ml: calorieResult.dailyWaterML || 0,
-        protein_g: macroResult.macro_grams.protein,
-        fat_g: macroResult.macro_grams.fat,
-        carbs_g: macroResult.macro_grams.carbs,
-        strategy: strategyMode,
-        bcs_category: bcs.category
-
-      });
-
-    } catch (dbError) {
-
-      console.error("DB Save Failed:", dbError.message);
-    }
 
     return res.status(200).json({
 
@@ -376,7 +230,6 @@ if (!age || age < 0)
       weight_progression: journey,
 
       weekly_diet_plan: diet
-
     });
 
   }
