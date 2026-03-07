@@ -16,11 +16,24 @@ const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 
 function calculateIdealWeight(ageMonths) {
 
-  const ranges = engineData.Breed_Weight_Ranges;
+  const rangesRaw = engineData.Breed_Weight_Ranges;
+
+  if (!rangesRaw) {
+    throw new Error("Breed_Weight_Ranges missing in dataset");
+  }
+
+  /* ensure iterable */
+
+  const ranges = Array.isArray(rangesRaw)
+    ? rangesRaw
+    : Object.values(rangesRaw);
 
   for (const r of ranges) {
 
-    if (ageMonths >= r.min_age_months && ageMonths <= r.max_age_months) {
+    if (
+      ageMonths >= r.min_age_months &&
+      ageMonths <= r.max_age_months
+    ) {
 
       const ideal = (r.min_weight_kg + r.max_weight_kg) / 2;
 
@@ -29,6 +42,8 @@ function calculateIdealWeight(ageMonths) {
     }
 
   }
+
+  /* fallback to last range */
 
   const last = ranges[ranges.length - 1];
 
