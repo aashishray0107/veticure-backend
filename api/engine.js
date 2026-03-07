@@ -10,48 +10,14 @@ import { saveReport } from "../lib/pocketbase.js";
 /* ---------------- DATASET ---------------- */
 
 const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
-const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 
-/* ---------------- IDEAL WEIGHT ENGINE ---------------- */
-
-function calculateIdealWeight(ageMonths) {
-
-  const rangesRaw = engineData.Breed_Weight_Ranges;
-
-  if (!rangesRaw) {
-    throw new Error("Breed_Weight_Ranges missing in dataset");
-  }
-
-  /* ensure iterable */
-
-  const ranges = Array.isArray(rangesRaw)
-    ? rangesRaw
-    : Object.values(rangesRaw);
-
-  for (const r of ranges) {
-
-    if (
-      ageMonths >= r.min_age_months &&
-      ageMonths <= r.max_age_months
-    ) {
-
-      const ideal = (r.min_weight_kg + r.max_weight_kg) / 2;
-
-      return Number(ideal.toFixed(1));
-
-    }
-
-  }
-
-  /* fallback to last range */
-
-  const last = ranges[ranges.length - 1];
-
-  return Number(
-    ((last.min_weight_kg + last.max_weight_kg) / 2).toFixed(1)
-  );
-
+if (!fs.existsSync(dataPath)) {
+  throw new Error("Dataset missing: labrador_engine.json");
 }
+
+const engineData = JSON.parse(
+  fs.readFileSync(dataPath, "utf-8")
+);
 
 /* ---------------- LIFE STAGE ENGINE ---------------- */
 
@@ -59,8 +25,58 @@ function detectLifeStage(ageMonths) {
 
   if (ageMonths < 12) return "Puppy";
   if (ageMonths < 96) return "Adult";
-  return "Senior";
 
+  return "Senior";
+}
+
+/* ---------------- IDEAL WEIGHT ENGINE ---------------- */
+
+function calculateIdealWeight(ageMonths) {
+
+  const ranges = engineData.Weight_By_Age;
+
+  if (!ranges || !Array.isArray(ranges)) {
+    throw new Error("Weight_By_Age dataset missing or invalid");
+  }
+
+  for (const r of ranges) {
+
+    const minAge = r.min_age_months;
+    const maxAge = r.max_age_months;
+
+    const inRange =
+      ageMonths >= minAge &&
+      (maxAge === null || ageMonths <= maxAge);
+
+    if (inRange) {
+
+      const male = r.data?.Male_kg;
+      const female = r.data?.Female_kg;
+
+      if (!male || !female) {
+        throw new Error("Weight range data malformed");
+      }
+
+      const minWeight = (male[0] + female[0]) / 2;
+      const maxWeight = (male[1] + female[1]) / 2;
+
+      const ideal = (minWeight + maxWeight) / 2;
+
+      return Number(ideal.toFixed(1));
+    }
+  }
+
+  /* fallback last range */
+
+  const last = ranges[ranges.length - 1];
+
+  const male = last.data.Male_kg;
+  const female = last.data.Female_kg;
+
+  const minWeight = (male[0] + female[0]) / 2;
+  const maxWeight = (male[1] + female[1]) / 2;
+
+  return Number(((minWeight + maxWeight) / 2).toFixed(1));
 }
 
 /* ---------------- BCS ENGINE ---------------- */
@@ -82,7 +98,6 @@ function evaluateBCS(weight, idealWeight) {
     deviationPercent: Number(deviation.toFixed(1)),
     category
   };
-
 }
 
 /* ---------------- STRATEGY ENGINE ---------------- */
@@ -102,7 +117,6 @@ function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Modera
   }
 
   return goal;
-
 }
 
 /* ---------------- WEEKLY CHANGE ENGINE ---------------- */
@@ -120,8 +134,7 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
     if (deviationPercent <= 5) return 1.0;
     if (deviationPercent <= 20) return 0.5;
 
-    return 0.2; // obese puppy → growth control
-
+    return 0.2;
   }
 
   /* ---------- ADULT ---------- */
@@ -134,7 +147,6 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
       if (deviation >= 20) return 1.3;
 
       return 1.5;
-
     }
 
     if (strategyMode === "Weight_Gain") {
@@ -143,7 +155,6 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
       if (deviation >= 20) return 2.0;
 
       return 1.5;
-
     }
 
     if (strategyMode === "Muscle_Build") {
@@ -151,9 +162,7 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
       if (activity === "High") return 0.8;
 
       return 0.5;
-
     }
-
   }
 
   /* ---------- SENIOR ---------- */
@@ -166,7 +175,6 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
       if (deviation >= 20) return 0.8;
 
       return 1.0;
-
     }
 
     if (strategyMode === "Weight_Gain") {
@@ -174,13 +182,10 @@ function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activi
       if (deviation >= 20) return 1.5;
 
       return 1.0;
-
     }
-
   }
 
   return 0;
-
 }
 
 /* ---------------- JOURNEY SUMMARY ---------------- */
@@ -199,7 +204,9 @@ function summarizeJourney(journey, startWeight, targetWeight) {
     ((totalWeightChange / startWeight) * 100).toFixed(2)
   );
 
-  const weeklyPercentChanges = journey.map(w => w.weekly_percent_change);
+  const weeklyPercentChanges = journey.map(
+    w => w.weekly_percent_change
+  );
 
   return {
 
@@ -209,9 +216,7 @@ function summarizeJourney(journey, startWeight, targetWeight) {
     total_weight_change: totalWeightChange,
     total_percent_change: totalPercentChange,
     weekly_percent_changes: weeklyPercentChanges
-
   };
-
 }
 
 /* ---------------- API HANDLER ---------------- */
@@ -229,27 +234,23 @@ export default async function handler(req, res) {
       symptoms = []
     } = req.body;
 
-    /* ---------- LIFE STAGE ---------- */
+    if (!weight || weight <= 0)
+  throw new Error("Invalid weight");
+
+if (!age || age < 0)
+  throw new Error("Invalid age");
 
     const lifeStage = detectLifeStage(age);
 
-    /* ---------- IDEAL WEIGHT ---------- */
-
     const idealWeight = calculateIdealWeight(age);
 
-    /* ---------- BCS ---------- */
-
     const bcs = evaluateBCS(weight, idealWeight);
-
-    /* ---------- STRATEGY ---------- */
 
     const strategyMode = determineStrategy(
       bcs.category,
       goal,
       activity
     );
-
-    /* ---------- CALORIES ---------- */
 
     const calorieResult = calculateCalories({
 
@@ -263,8 +264,6 @@ export default async function handler(req, res) {
 
     });
 
-    /* ---------- MACROS ---------- */
-
     const macroResult = calculateMacros({
 
       calories: calorieResult.finalDailyCalories,
@@ -272,8 +271,6 @@ export default async function handler(req, res) {
       lifeStage
 
     });
-
-    /* ---------- WEEKLY CHANGE RATE ---------- */
 
     const weeklyPercent = getWeeklyChangeRate({
 
@@ -284,8 +281,6 @@ export default async function handler(req, res) {
 
     });
 
-    /* ---------- PROGRESSION ---------- */
-
     const journey = simulateJourney({
 
       startWeight: weight,
@@ -293,6 +288,7 @@ export default async function handler(req, res) {
       weeklyPercent,
       mode: strategyMode,
       lifeStage,
+      ageMonths: age,
       activity,
       season,
       symptoms
@@ -305,8 +301,6 @@ export default async function handler(req, res) {
       idealWeight
     );
 
-    /* ---------- DIET ---------- */
-
     const diet = generateDietPlan({
 
       macros: macroResult.macro_grams,
@@ -316,8 +310,6 @@ export default async function handler(req, res) {
       symptoms
 
     });
-
-    /* ---------- SAVE REPORT ---------- */
 
     try {
 
@@ -336,10 +328,7 @@ export default async function handler(req, res) {
     } catch (dbError) {
 
       console.error("DB Save Failed:", dbError.message);
-
     }
-
-    /* ---------- RESPONSE ---------- */
 
     return res.status(200).json({
 
@@ -372,7 +361,5 @@ export default async function handler(req, res) {
     return res.status(500).json({
       error: err.message
     });
-
   }
-
 }
