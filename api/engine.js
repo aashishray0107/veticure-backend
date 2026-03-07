@@ -31,7 +31,7 @@ function detectLifeStage(ageMonths) {
 
 /* ---------------- IDEAL WEIGHT ENGINE ---------------- */
 
-function calculateIdealWeight(ageMonths) {
+function calculateIdealWeight(ageMonths, gender = "unknown") {
 
   const ranges = engineData.Weight_By_Age;
 
@@ -57,8 +57,22 @@ function calculateIdealWeight(ageMonths) {
         throw new Error("Weight range data malformed");
       }
 
-      const minWeight = (male[0] + female[0]) / 2;
-      const maxWeight = (male[1] + female[1]) / 2;
+      let minWeight;
+      let maxWeight;
+
+      if (gender === "male") {
+        minWeight = male[0];
+        maxWeight = male[1];
+      }
+      else if (gender === "female") {
+        minWeight = female[0];
+        maxWeight = female[1];
+      }
+      else {
+        /* neutral fallback if gender unknown */
+        minWeight = (male[0] + female[0]) / 2;
+        maxWeight = (male[1] + female[1]) / 2;
+      }
 
       const ideal = (minWeight + maxWeight) / 2;
 
@@ -66,15 +80,28 @@ function calculateIdealWeight(ageMonths) {
     }
   }
 
-  /* fallback last range */
+  /* fallback to last range */
 
   const last = ranges[ranges.length - 1];
 
   const male = last.data.Male_kg;
   const female = last.data.Female_kg;
 
-  const minWeight = (male[0] + female[0]) / 2;
-  const maxWeight = (male[1] + female[1]) / 2;
+  let minWeight;
+  let maxWeight;
+
+  if (gender === "male") {
+    minWeight = male[0];
+    maxWeight = male[1];
+  }
+  else if (gender === "female") {
+    minWeight = female[0];
+    maxWeight = female[1];
+  }
+  else {
+    minWeight = (male[0] + female[0]) / 2;
+    maxWeight = (male[1] + female[1]) / 2;
+  }
 
   return Number(((minWeight + maxWeight) / 2).toFixed(1));
 }
