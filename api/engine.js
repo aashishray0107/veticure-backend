@@ -1,10 +1,54 @@
+import fs from "fs";
+import path from "path";
+
 import { generateDietPlan } from "../lib/dietEngine.js";
 import { simulateJourney } from "../lib/progressionEngine.js";
 import { calculateCalories } from "../lib/calorieEngine.js";
 import { calculateMacros } from "../lib/macroEngine.js";
 import { saveReport } from "../lib/pocketbase.js";
 
-/* ------------------ BCS ENGINE ------------------ */
+/* ---------------- DATASET ---------------- */
+
+const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
+const engineData = JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+
+/* ---------------- IDEAL WEIGHT ENGINE ---------------- */
+
+function calculateIdealWeight(ageMonths) {
+
+  const ranges = engineData.Breed_Weight_Ranges;
+
+  for (const r of ranges) {
+
+    if (ageMonths >= r.min_age_months && ageMonths <= r.max_age_months) {
+
+      const ideal = (r.min_weight_kg + r.max_weight_kg) / 2;
+
+      return Number(ideal.toFixed(1));
+
+    }
+
+  }
+
+  const last = ranges[ranges.length - 1];
+
+  return Number(
+    ((last.min_weight_kg + last.max_weight_kg) / 2).toFixed(1)
+  );
+
+}
+
+/* ---------------- LIFE STAGE ENGINE ---------------- */
+
+function detectLifeStage(ageMonths) {
+
+  if (ageMonths < 12) return "Puppy";
+  if (ageMonths < 96) return "Adult";
+  return "Senior";
+
+}
+
+/* ---------------- BCS ENGINE ---------------- */
 
 function evaluateBCS(weight, idealWeight) {
 
@@ -13,8 +57,8 @@ function evaluateBCS(weight, idealWeight) {
   let category = "Ideal";
 
   if (deviation <= -20) category = "Severely_Underweight";
-  else if (deviation <= -10) category = "Underweight";
-  else if (deviation <= 10) category = "Ideal";
+  else if (deviation <= -5) category = "Underweight";
+  else if (deviation <= 5) category = "Ideal";
   else if (deviation <= 20) category = "Overweight";
   else category = "Obese";
 
@@ -23,9 +67,10 @@ function evaluateBCS(weight, idealWeight) {
     deviationPercent: Number(deviation.toFixed(1)),
     category
   };
+
 }
 
-/* ------------------ STRATEGY ENGINE ------------------ */
+/* ---------------- STRATEGY ENGINE ---------------- */
 
 function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Moderate") {
 
@@ -37,15 +82,93 @@ function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Modera
     return "Weight_Gain";
   }
 
-  /* Athletic dogs can enter muscle building */
-
   if (bcsCategory === "Ideal" && activity === "High") {
     return "Muscle_Build";
   }
 
   return goal;
+
 }
-/* ---------- JOURNEY SUMMARY ---------- */
+
+/* ---------------- WEEKLY CHANGE ENGINE ---------------- */
+
+function getWeeklyChangeRate({ lifeStage, strategyMode, deviationPercent, activity }) {
+
+  const deviation = Math.abs(deviationPercent);
+
+  /* ---------- PUPPY ---------- */
+
+  if (lifeStage === "Puppy") {
+
+    if (deviationPercent <= -20) return 2.0;
+    if (deviationPercent < -5) return 1.5;
+    if (deviationPercent <= 5) return 1.0;
+    if (deviationPercent <= 20) return 0.5;
+
+    return 0.2; // obese puppy → growth control
+
+  }
+
+  /* ---------- ADULT ---------- */
+
+  if (lifeStage === "Adult") {
+
+    if (strategyMode === "Fat_Loss") {
+
+      if (deviation >= 35) return 1.0;
+      if (deviation >= 20) return 1.3;
+
+      return 1.5;
+
+    }
+
+    if (strategyMode === "Weight_Gain") {
+
+      if (deviation >= 35) return 2.5;
+      if (deviation >= 20) return 2.0;
+
+      return 1.5;
+
+    }
+
+    if (strategyMode === "Muscle_Build") {
+
+      if (activity === "High") return 0.8;
+
+      return 0.5;
+
+    }
+
+  }
+
+  /* ---------- SENIOR ---------- */
+
+  if (lifeStage === "Senior") {
+
+    if (strategyMode === "Fat_Loss") {
+
+      if (deviation >= 35) return 0.6;
+      if (deviation >= 20) return 0.8;
+
+      return 1.0;
+
+    }
+
+    if (strategyMode === "Weight_Gain") {
+
+      if (deviation >= 20) return 1.5;
+
+      return 1.0;
+
+    }
+
+  }
+
+  return 0;
+
+}
+
+/* ---------------- JOURNEY SUMMARY ---------------- */
 
 function summarizeJourney(journey, startWeight, targetWeight) {
 
@@ -64,17 +187,19 @@ function summarizeJourney(journey, startWeight, targetWeight) {
   const weeklyPercentChanges = journey.map(w => w.weekly_percent_change);
 
   return {
+
     start_weight: startWeight,
     target_weight: targetWeight,
     estimated_weeks: journey.length,
     total_weight_change: totalWeightChange,
     total_percent_change: totalPercentChange,
     weekly_percent_changes: weeklyPercentChanges
+
   };
 
 }
 
-/* ------------------ API HANDLER ------------------ */
+/* ---------------- API HANDLER ---------------- */
 
 export default async function handler(req, res) {
 
@@ -89,99 +214,100 @@ export default async function handler(req, res) {
       symptoms = []
     } = req.body;
 
-    /* ---------- LIFE STAGE DETECTION ---------- */
+    /* ---------- LIFE STAGE ---------- */
 
-let lifeStage;
+    const lifeStage = detectLifeStage(age);
 
-if (age < 12) {
-  lifeStage = "Puppy";
-}
-else if (age >= 12 && age < 96) {
-  lifeStage = "Adult";
-}
-else {
-  lifeStage = "Senior";
-}
+    /* ---------- IDEAL WEIGHT ---------- */
+
+    const idealWeight = calculateIdealWeight(age);
 
     /* ---------- BCS ---------- */
-
-    const idealWeight = 32; // labrador reference
 
     const bcs = evaluateBCS(weight, idealWeight);
 
     /* ---------- STRATEGY ---------- */
 
-const strategyMode = determineStrategy(bcs.category, goal, activity);
+    const strategyMode = determineStrategy(
+      bcs.category,
+      goal,
+      activity
+    );
+
     /* ---------- CALORIES ---------- */
 
     const calorieResult = calculateCalories({
+
       weight,
       ageMonths: age,
       activity,
       season,
       symptoms,
-      lifeStage: "Adult",
+      lifeStage,
       bcsCategory: bcs.category
+
     });
 
     /* ---------- MACROS ---------- */
 
     const macroResult = calculateMacros({
+
       calories: calorieResult.finalDailyCalories,
       strategyMode,
-      lifeStage: "Adult"
+      lifeStage
+
     });
 
+    /* ---------- WEEKLY CHANGE RATE ---------- */
+
+    const weeklyPercent = getWeeklyChangeRate({
+
+      lifeStage,
+      strategyMode,
+      deviationPercent: bcs.deviationPercent,
+      activity
+
+    });
 
     /* ---------- PROGRESSION ---------- */
 
-let weeklyPercent;
+    const journey = simulateJourney({
 
-if (strategyMode === "Fat_Loss") {
-  weeklyPercent = 1.5;
-}
-else if (strategyMode === "Weight_Gain") {
-  weeklyPercent = 2.0;
-}
-else if (strategyMode === "Muscle_Build") {
-  weeklyPercent = 0.8;
-}
-else {
-  weeklyPercent = 0;
-}
+      startWeight: weight,
+      targetWeight: idealWeight,
+      weeklyPercent,
+      mode: strategyMode,
+      lifeStage,
+      activity,
+      season,
+      symptoms
 
-const journey = simulateJourney({
-  startWeight: weight,
-  targetWeight: bcs.idealWeight,
-  weeklyPercent,
-  mode: strategyMode,
-  lifeStage,
-  activity,
-  season,
-  symptoms,
-});
+    });
 
-const journeySummary = summarizeJourney(
-  journey,
-  weight,
-  bcs.idealWeight
-);
+    const journeySummary = summarizeJourney(
+      journey,
+      weight,
+      idealWeight
+    );
 
     /* ---------- DIET ---------- */
 
     const diet = generateDietPlan({
+
       macros: macroResult.macro_grams,
       calories: calorieResult.finalDailyCalories,
       bcsCategory: bcs.category,
       bodyWeight: weight,
       symptoms
+
     });
 
-    /* ---------- SAVE REPORT (SAFE) ---------- */
+    /* ---------- SAVE REPORT ---------- */
 
     try {
 
       await saveReport({
+
         calories: calorieResult.finalDailyCalories,
         hydration_ml: calorieResult.dailyWaterML || 0,
         protein_g: macroResult.macro_grams.protein,
@@ -189,6 +315,7 @@ const journeySummary = summarizeJourney(
         carbs_g: macroResult.macro_grams.carbs,
         strategy: strategyMode,
         bcs_category: bcs.category
+
       });
 
     } catch (dbError) {
@@ -201,27 +328,29 @@ const journeySummary = summarizeJourney(
 
     return res.status(200).json({
 
-  bcs_report: {
-    ideal_weight: bcs.idealWeight,
-    weight_deviation_percent: bcs.deviationPercent,
-    bcs_category: bcs.category
-  },
+      bcs_report: {
+        ideal_weight: bcs.idealWeight,
+        weight_deviation_percent: bcs.deviationPercent,
+        bcs_category: bcs.category
+      },
 
-  strategy_used: strategyMode,
+      strategy_used: strategyMode,
 
-  calorie_report: calorieResult,
+      calorie_report: calorieResult,
 
-  macro_report: macroResult,
+      macro_report: macroResult,
 
-  weight_progress_guidelines: journeySummary,
+      weight_progress_guidelines: journeySummary,
 
-  weight_progression: journey,
+      weight_progression: journey,
 
-  weekly_diet_plan: diet
+      weekly_diet_plan: diet
 
-});
+    });
 
-  } catch (err) {
+  }
+
+  catch (err) {
 
     console.error(err);
 
