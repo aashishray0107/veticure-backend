@@ -57,7 +57,6 @@ function detectLifeStage(ageMonths) {
 }
 
 /* ---------------- IDEAL WEIGHT ENGINE ---------------- */
-
 function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
 
   let stages = engineData.Lifecycle_Growth_Model_20_Stages;
@@ -65,8 +64,6 @@ function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
   if (!stages) {
     throw new Error("Lifecycle_Growth_Model_20_Stages missing");
   }
-
-  /* support object or array format */
 
   if (!Array.isArray(stages)) {
     stages = Object.values(stages);
@@ -76,12 +73,56 @@ function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
 
   for (const stage of stages) {
 
-    const minAge = stage.min_age_months;
-    const maxAge = stage.max_age_months;
+    let minMonths = null;
+    let maxMonths = null;
+
+    /* convert weeks → months */
+
+    if (stage.min_age_weeks !== undefined) {
+
+      minMonths = stage.min_age_weeks / 4.345;
+
+      maxMonths =
+        stage.max_age_weeks !== null &&
+        stage.max_age_weeks !== undefined
+          ? stage.max_age_weeks / 4.345
+          : null;
+
+    }
+
+    /* already months */
+
+    else if (stage.min_age_months !== undefined) {
+
+      minMonths = stage.min_age_months;
+
+      maxMonths =
+        stage.max_age_months !== null &&
+        stage.max_age_months !== undefined
+          ? stage.max_age_months
+          : null;
+
+    }
+
+    /* years → months */
+
+    else if (stage.min_age_years !== undefined) {
+
+      minMonths = stage.min_age_years * 12;
+
+      maxMonths =
+        stage.max_age_years !== null &&
+        stage.max_age_years !== undefined
+          ? stage.max_age_years * 12
+          : null;
+
+    }
+
+    if (minMonths === null) continue;
 
     const match =
-      ageMonths >= minAge &&
-      (maxAge === null || ageMonths <= maxAge);
+      ageMonths >= minMonths &&
+      (maxMonths === null || ageMonths <= maxMonths);
 
     if (!match) continue;
 
@@ -120,6 +161,7 @@ function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
   }
 
   throw new Error("Ideal weight not found for given age");
+
 }
 
 /* ---------------- BCS ENGINE ---------------- */
@@ -217,20 +259,22 @@ export default async function handler(req, res) {
       determineStrategy(bcs.category, goal, activity);
 
     const calorieResult = calculateCalories({
-      weight,
-      ageMonths: age,
-      activity,
-      season,
-      symptoms,
-      lifeStage,
-      bcsCategory: bcs.category
-    });
+  weight,
+  ageMonths: age,
+  activity,
+  season,
+  symptoms,
+  lifeStage,
+  bcsCategory: bcs.category,
+  engineData
+});
 
     const macroResult = calculateMacros({
-      calories: calorieResult.finalDailyCalories,
-      strategyMode,
-      lifeStage
-    });
+  calories: calorieResult.finalDailyCalories,
+  strategyMode,
+  lifeStage,
+  engineData
+});
 
     const journey = simulateJourney({
       startWeight: weight,
@@ -245,12 +289,13 @@ export default async function handler(req, res) {
     });
 
     const diet = generateDietPlan({
-      macros: macroResult.macro_grams,
-      calories: calorieResult.finalDailyCalories,
-      bcsCategory: bcs.category,
-      bodyWeight: weight,
-      symptoms
-    });
+  macros: macroResult.macro_grams,
+  calories: calorieResult.finalDailyCalories,
+  bcsCategory: bcs.category,
+  bodyWeight: weight,
+  symptoms,
+  engineData
+});
 
     const result = {
 
@@ -274,8 +319,7 @@ export default async function handler(req, res) {
 
     };
 
-    await saveReport(result);
-
+// await saveReport(result);
     return res.status(200).json(result);
 
   }
