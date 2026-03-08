@@ -7,14 +7,24 @@ import { calculateCalories } from "../lib/calorieEngine.js";
 import { calculateMacros } from "../lib/macroEngine.js";
 import { saveReport } from "../lib/pocketbase.js";
 
+/* ---------------- DATASET CACHE ---------------- */
+
+const datasetCache = {};
+
 /* ---------------- DATASET LOADER ---------------- */
 
 function loadDataset(breed) {
 
   if (!breed) throw new Error("Breed required");
 
-  const fileName =
-    breed.toLowerCase().replace(/\s+/g, "_") + "_engine.json";
+  const normalizedBreed =
+    breed.toLowerCase().replace(/\s+/g, "_");
+
+  const fileName = `${normalizedBreed}_engine.json`;
+
+  if (datasetCache[fileName]) {
+    return datasetCache[fileName];
+  }
 
   const dataPath = path.join(
     process.cwd(),
@@ -27,7 +37,13 @@ function loadDataset(breed) {
     throw new Error(`Dataset not found for breed: ${breed}`);
   }
 
-  return JSON.parse(fs.readFileSync(dataPath, "utf-8"));
+  const dataset = JSON.parse(
+    fs.readFileSync(dataPath, "utf-8")
+  );
+
+  datasetCache[fileName] = dataset;
+
+  return dataset;
 }
 
 /* ---------------- LIFE STAGE ---------------- */
@@ -35,7 +51,6 @@ function loadDataset(breed) {
 function detectLifeStage(ageMonths) {
 
   if (ageMonths < 12) return "Puppy";
-
   if (ageMonths < 96) return "Adult";
 
   return "Senior";
@@ -45,10 +60,16 @@ function detectLifeStage(ageMonths) {
 
 function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
 
-  const stages = engineData.Lifecycle_Growth_Model_20_Stages;
+  let stages = engineData.Lifecycle_Growth_Model_20_Stages;
 
   if (!stages) {
     throw new Error("Lifecycle_Growth_Model_20_Stages missing");
+  }
+
+  /* support object or array format */
+
+  if (!Array.isArray(stages)) {
+    stages = Object.values(stages);
   }
 
   const g = gender.toLowerCase();
@@ -67,22 +88,30 @@ function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
     const male = stage.Male_Ideal_Weight_Range_kg;
     const female = stage.Female_Ideal_Weight_Range_kg;
 
+    if (!male || !female) continue;
+
     let minWeight;
     let maxWeight;
 
     if (g === "male") {
+
       minWeight = male[0];
       maxWeight = male[1];
+
     }
 
     else if (g === "female") {
+
       minWeight = female[0];
       maxWeight = female[1];
+
     }
 
     else {
+
       minWeight = (male[0] + female[0]) / 2;
       maxWeight = (male[1] + female[1]) / 2;
+
     }
 
     const ideal = (minWeight + maxWeight) / 2;
@@ -144,6 +173,14 @@ export default async function handler(req, res) {
 
   try {
 
+    if (req.method !== "POST") {
+      return res.status(405).json({
+        error: "Method not allowed"
+      });
+    }
+
+    const body = req.body || {};
+
     const {
 
       breed = "Labrador",
@@ -155,15 +192,17 @@ export default async function handler(req, res) {
       goal = "Maintenance",
       symptoms = []
 
-    } = req.body;
+    } = body;
 
-    if (!weight || weight <= 0)
+    if (!weight || weight <= 0) {
       throw new Error("Invalid weight");
+    }
 
-    if (!age || age < 0)
+    if (age === undefined || age < 0) {
       throw new Error("Invalid age");
+    }
 
-    /* Load correct breed dataset */
+    /* Load dataset */
 
     const engineData = loadDataset(breed);
 
@@ -232,6 +271,7 @@ export default async function handler(req, res) {
       weight_progression: journey,
 
       weekly_diet_plan: diet
+
     };
 
     await saveReport(result);
@@ -242,7 +282,7 @@ export default async function handler(req, res) {
 
   catch (err) {
 
-    console.error(err);
+    console.error("ENGINE ERROR:", err);
 
     return res.status(500).json({
       error: err.message
