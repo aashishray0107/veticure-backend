@@ -7,17 +7,28 @@ import { calculateCalories } from "../lib/calorieEngine.js";
 import { calculateMacros } from "../lib/macroEngine.js";
 import { saveReport } from "../lib/pocketbase.js";
 
-/* ---------------- DATASET ---------------- */
+/* ---------------- DATASET LOADER ---------------- */
 
-const dataPath = path.join(process.cwd(), "data", "labrador_engine.json");
+function loadDataset(breed) {
 
-if (!fs.existsSync(dataPath)) {
-  throw new Error("Dataset missing: labrador_engine.json");
+  if (!breed) throw new Error("Breed required");
+
+  const fileName =
+    breed.toLowerCase().replace(/\s+/g, "_") + "_engine.json";
+
+  const dataPath = path.join(
+    process.cwd(),
+    "data",
+    "breeds",
+    fileName
+  );
+
+  if (!fs.existsSync(dataPath)) {
+    throw new Error(`Dataset not found for breed: ${breed}`);
+  }
+
+  return JSON.parse(fs.readFileSync(dataPath, "utf-8"));
 }
-
-const engineData = JSON.parse(
-  fs.readFileSync(dataPath, "utf-8")
-);
 
 /* ---------------- LIFE STAGE ---------------- */
 
@@ -32,20 +43,20 @@ function detectLifeStage(ageMonths) {
 
 /* ---------------- IDEAL WEIGHT ENGINE ---------------- */
 
-function calculateIdealWeight(ageMonths, gender = "unknown") {
+function calculateIdealWeight(engineData, ageMonths, gender = "unknown") {
 
-  const ranges = engineData.Weight_By_Age;
+  const stages = engineData.Lifecycle_Growth_Model_20_Stages;
 
-  if (!ranges || !Array.isArray(ranges)) {
-    throw new Error("Weight_By_Age dataset missing");
+  if (!stages) {
+    throw new Error("Lifecycle_Growth_Model_20_Stages missing");
   }
 
   const g = gender.toLowerCase();
 
-  for (const r of ranges) {
+  for (const stage of stages) {
 
-    const minAge = r.min_age_months;
-    const maxAge = r.max_age_months;
+    const minAge = stage.min_age_months;
+    const maxAge = stage.max_age_months;
 
     const match =
       ageMonths >= minAge &&
@@ -53,12 +64,8 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
 
     if (!match) continue;
 
-    const male = r.data?.Male_kg;
-    const female = r.data?.Female_kg;
-
-    if (!male || !female) {
-      throw new Error("Weight range data malformed");
-    }
+    const male = stage.Male_Ideal_Weight_Range_kg;
+    const female = stage.Female_Ideal_Weight_Range_kg;
 
     let minWeight;
     let maxWeight;
@@ -83,39 +90,15 @@ function calculateIdealWeight(ageMonths, gender = "unknown") {
     return Number(ideal.toFixed(1));
   }
 
-  /* fallback last range */
-
-  const last = ranges[ranges.length - 1];
-
-  const male = last.data.Male_kg;
-  const female = last.data.Female_kg;
-
-  let minWeight;
-  let maxWeight;
-
-  if (g === "male") {
-    minWeight = male[0];
-    maxWeight = male[1];
-  }
-
-  else if (g === "female") {
-    minWeight = female[0];
-    maxWeight = female[1];
-  }
-
-  else {
-    minWeight = (male[0] + female[0]) / 2;
-    maxWeight = (male[1] + female[1]) / 2;
-  }
-
-  return Number(((minWeight + maxWeight) / 2).toFixed(1));
+  throw new Error("Ideal weight not found for given age");
 }
 
 /* ---------------- BCS ENGINE ---------------- */
 
 function evaluateBCS(weight, idealWeight) {
 
-  const deviation = ((weight - idealWeight) / idealWeight) * 100;
+  const deviation =
+    ((weight - idealWeight) / idealWeight) * 100;
 
   let category = "Ideal";
 
@@ -134,19 +117,23 @@ function evaluateBCS(weight, idealWeight) {
 
 /* ---------------- STRATEGY ENGINE ---------------- */
 
-function determineStrategy(bcsCategory, goal = "Maintenance", activity = "Moderate") {
+function determineStrategy(
+  bcsCategory,
+  goal = "Maintenance",
+  activity = "Moderate"
+) {
 
-  if (bcsCategory === "Obese" || bcsCategory === "Overweight") {
+  if (bcsCategory === "Obese" || bcsCategory === "Overweight")
     return "Fat_Loss";
-  }
 
-  if (bcsCategory === "Underweight" || bcsCategory === "Severely_Underweight") {
+  if (
+    bcsCategory === "Underweight" ||
+    bcsCategory === "Severely_Underweight"
+  )
     return "Weight_Gain";
-  }
 
-  if (bcsCategory === "Ideal" && activity === "High") {
+  if (bcsCategory === "Ideal" && activity === "High")
     return "Muscle_Build";
-  }
 
   return goal;
 }
@@ -159,6 +146,7 @@ export default async function handler(req, res) {
 
     const {
 
+      breed = "Labrador",
       weight,
       age,
       gender = "unknown",
@@ -175,9 +163,14 @@ export default async function handler(req, res) {
     if (!age || age < 0)
       throw new Error("Invalid age");
 
+    /* Load correct breed dataset */
+
+    const engineData = loadDataset(breed);
+
     const lifeStage = detectLifeStage(age);
 
-    const idealWeight = calculateIdealWeight(age, gender);
+    const idealWeight =
+      calculateIdealWeight(engineData, age, gender);
 
     const bcs = evaluateBCS(weight, idealWeight);
 
@@ -220,7 +213,9 @@ export default async function handler(req, res) {
       symptoms
     });
 
-    return res.status(200).json({
+    const result = {
+
+      breed,
 
       bcs_report: {
         ideal_weight: bcs.idealWeight,
@@ -237,8 +232,11 @@ export default async function handler(req, res) {
       weight_progression: journey,
 
       weekly_diet_plan: diet
+    };
 
-    });
+    await saveReport(result);
+
+    return res.status(200).json(result);
 
   }
 
@@ -249,5 +247,6 @@ export default async function handler(req, res) {
     return res.status(500).json({
       error: err.message
     });
+
   }
 }
