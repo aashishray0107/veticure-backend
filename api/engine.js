@@ -11,16 +11,44 @@ import { saveReport } from "../lib/pocketbase.js";
 
 const datasetCache = {};
 
+/* ---------------- BREED NORMALIZER ---------------- */
+
+function normalizeBreedName(breed) {
+
+  if (!breed) throw new Error("Breed required");
+
+  let normalized = breed
+    .toLowerCase()
+    .trim();
+
+  /* remove common suffix words */
+
+  normalized = normalized
+    .replace("retriever", "")
+    .replace("dog", "")
+    .replace("breed", "")
+    .trim();
+
+  /* convert spaces to underscore */
+
+  normalized = normalized.replace(/\s+/g, "_");
+
+  return normalized;
+
+}
+
+
 /* ---------------- DATASET LOADER ---------------- */
 
 function loadDataset(breed) {
 
   if (!breed) throw new Error("Breed required");
 
-  const normalizedBreed =
-    breed.toLowerCase().replace(/\s+/g, "_");
+  const normalizedBreed = normalizeBreedName(breed);
 
   const fileName = `${normalizedBreed}_engine.json`;
+
+  /* cache check */
 
   if (datasetCache[fileName]) {
     return datasetCache[fileName];
@@ -41,11 +69,13 @@ function loadDataset(breed) {
     fs.readFileSync(dataPath, "utf-8")
   );
 
+  /* cache store */
+
   datasetCache[fileName] = dataset;
 
   return dataset;
-}
 
+}
 /* ---------------- LIFE STAGE ---------------- */
 
 function detectLifeStage(ageMonths) {
@@ -277,16 +307,19 @@ export default async function handler(req, res) {
 });
 
     const journey = simulateJourney({
-      startWeight: weight,
-      targetWeight: idealWeight,
-      weeklyPercent: 1,
-      mode: strategyMode,
-      lifeStage,
-      ageMonths: age,
-      activity,
-      season,
-      symptoms
-    });
+
+  startWeight: weight,
+  targetWeight: idealWeight,
+  weeklyPercent: 1,
+  mode: strategyMode,
+  lifeStage,
+  ageMonths: age,
+  activity,
+  season,
+  symptoms,
+  engineData
+
+});
 
     const diet = generateDietPlan({
   macros: macroResult.macro_grams,
