@@ -17,23 +17,10 @@ function normalizeBreedName(breed) {
 
   if (!breed) throw new Error("Breed required");
 
-  let normalized = breed
+  return breed
     .toLowerCase()
-    .trim();
-
-  /* remove common suffix words */
-
-  normalized = normalized
-    .replace("retriever", "")
-    .replace("dog", "")
-    .replace("breed", "")
-    .trim();
-
-  /* convert spaces to underscore */
-
-  normalized = normalized.replace(/\s+/g, "_");
-
-  return normalized;
+    .trim()
+    .replace(/\s+/g, "_");
 
 }
 
