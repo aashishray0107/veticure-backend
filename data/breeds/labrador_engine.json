@@ -3551,30 +3551,37 @@
         "max_safe_percentage_of_total_meal": 0.05,
         "category": "moderate_fat_source"
       },
-      "Paneer low fat": {
+    "Paneer low fat": {
   "kcal_per_100g": 200,
   "protein_g": 18,
   "fat_g": 12,
   "carbs_g": 3,
   "fiber_g": 0,
+  "calcium_g_per_100g": 0.2,
+  "phosphorus_g_per_100g": 0.15,
+  "moisture_g": 50.0,
   "category": "veg_protein"
 },
-
 "Tofu firm": {
   "kcal_per_100g": 144,
   "protein_g": 15,
   "fat_g": 8,
   "carbs_g": 3,
   "fiber_g": 1,
+  "calcium_g_per_100g": 0.35,
+  "phosphorus_g_per_100g": 0.19,
+  "moisture_g": 70.0,
   "category": "veg_protein"
 },
-
 "Masoor dal cooked": {
   "kcal_per_100g": 116,
   "protein_g": 9,
   "fat_g": 0.4,
   "carbs_g": 20,
   "fiber_g": 8,
+  "calcium_g_per_100g": 0.019,
+  "phosphorus_g_per_100g": 0.18,
+  "moisture_g": 70.0,
   "category": "veg_protein"
 }
     },
@@ -3745,6 +3752,11 @@
     "foods": ["Khichdi"],
     "notes": "Light, low fat, easy digestible"
   },
+  "therapeutic_meals": {
+  "GI_Support": ["Khichdi"],
+  "Recovery": ["Daliya"],
+  "Digestive_Cooling": ["Curd rice"]
+},
   "Recovery": {
     "foods": ["Daliya"],
     "notes": "Energy restoring, moderate carb"
