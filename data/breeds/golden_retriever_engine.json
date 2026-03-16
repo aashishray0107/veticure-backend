@@ -2123,11 +2123,11 @@
   },
   "Macronutrient_Ratio_Profiles": {
     "Maintenance": {
-      "Protein": 0.3,
-      "Fat": 0.18,
-      "Carbs": 0.52,
-      "Fiber": 0.04
-    },
+  "Protein": 0.32,
+  "Fat": 0.28,
+  "Carbs": 0.36,
+  "Fiber": 0.04
+},
     "Muscle_Build": {
       "Protein": 0.36,
       "Fat": 0.19,
@@ -2871,14 +2871,14 @@
         "Rohu fish boiled deboned"
       ],
       "carb_sources": [
-        "Rice cooked white",
-        "Sweet potato boiled",
-        "Sweet potato boiled",
-        "Roti plain wheat (no salt, no oil)",
-        "Sweet potato boiled",
-        "Roti plain wheat (no salt, no oil)",
-        "Rice cooked white"
-      ],
+  "Rice cooked white",
+  "Sweet potato boiled",
+  "Oats cooked",
+  "Roti plain wheat (no salt, no oil)",
+  "Sweet potato boiled",
+  "Roti plain wheat (no salt, no oil)",
+  "Rice cooked white"
+],
       "fiber_sources": [
         "Pumpkin boiled",
         "Lauki boiled",
@@ -2886,11 +2886,11 @@
       ],
       "veg": {
         "protein_sources": [
-          "Moong dal cooked",
-          "Masoor dal cooked",
-          "Paneer low fat",
-          "Tofu firm"
-        ],
+  "Moong dal cooked",
+  "Masoor dal cooked",
+  "Tofu firm",
+  "Moong Dal cooked"
+],
         "carb_sources": [
           "Rice cooked white",
           "Oats cooked"
