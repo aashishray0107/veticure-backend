@@ -2217,15 +2217,15 @@
     },
     "Deviation_Thresholds": {
       "Emaciated": {
-        "Max_Deviation_Decimal": -0.30
+        "Max_Deviation_Decimal": -0.3
       },
       "Very_Thin": {
         "Min_Deviation_Decimal": -0.29,
-        "Max_Deviation_Decimal": -0.20
+        "Max_Deviation_Decimal": -0.2
       },
       "Underweight": {
         "Min_Deviation_Decimal": -0.19,
-        "Max_Deviation_Decimal": -0.10
+        "Max_Deviation_Decimal": -0.1
       },
       "Lean": {
         "Min_Deviation_Decimal": -0.09,
@@ -2237,18 +2237,18 @@
       },
       "Slightly_Overweight": {
         "Min_Deviation_Decimal": 0.06,
-        "Max_Deviation_Decimal": 0.10
+        "Max_Deviation_Decimal": 0.1
       },
       "Overweight": {
         "Min_Deviation_Decimal": 0.11,
         "Max_Deviation_Decimal": 0.19
       },
       "Obese": {
-        "Min_Deviation_Decimal": 0.20,
+        "Min_Deviation_Decimal": 0.2,
         "Max_Deviation_Decimal": 0.29
       },
       "Severely_Obese": {
-        "Min_Deviation_Decimal": 0.30
+        "Min_Deviation_Decimal": 0.3
       }
     },
     "Deviation_To_BCS_Estimate": {
@@ -2500,14 +2500,40 @@
       "Do_Not_Stack_Twice": true
     },
     "Global_Adjustment_Controller": {
-  "Engine_Role": "Reference_Only_Disabled_For_MVP",
-  "Active": false
-},
+      "Engine_Role": "Reference_Only_Disabled_For_MVP",
+      "Active": false
+    },
     "Final_Output_Block": {
       "Output_Field": "Final_kcal_per_day",
       "Single_Authoritative_Output": true,
       "No_Static_Block_Override": true,
       "Deterministic": true
+    },
+    "BCS_Adjustment": {
+      "Underweight": 0.15,
+      "Ideal": 0.0,
+      "Overweight": -0.1,
+      "Obese": -0.2
+    },
+    "Seasonal_Adjustment": {
+      "Summer": -0.05,
+      "Winter": 0.1,
+      "Rainy": 0.0,
+      "Normal": 0.0,
+      "Humid": -0.05,
+      "Cold": 0.1,
+      "Hot": -0.1
+    },
+    "Symptom_Adjustment": {
+      "Loose_Motion": -0.1,
+      "Vomiting": -0.15,
+      "Constipation": 0.05
+    },
+    "Safety_Clamp": {
+      "Min_kcal": "RER * 1.0",
+      "Max_kcal": "RER * 2.5",
+      "Global_Max_Positive": 0.35,
+      "Global_Max_Negative": -0.35
     }
   },
   "Seasonal_Calorie_Control": {
@@ -2654,8 +2680,8 @@
     ],
     "Reject_Null_Core_Inputs": true,
     "Optional_Flags": [
-  "renal_support_required"
-]
+      "renal_support_required"
+    ]
   },
   "Engine_Integrity_Validation": {
     "No_Duplicate_Keys": true,
@@ -2742,9 +2768,9 @@
     }
   },
   "Execution_Order_Control": {
-  "Engine_Role": "Reference_Only_Disabled_For_MVP",
-  "Active": false
-},
+    "Engine_Role": "Reference_Only_Disabled_For_MVP",
+    "Active": false
+  },
   "Global_Adjustment_Cap": {
     "Max_Positive_Adjustment": 0.35,
     "Max_Negative_Adjustment": -0.35,
@@ -2764,9 +2790,9 @@
     "BCS_Final_Single_Category": true
   },
   "Global_Adjustment_Controller": {
-  "Engine_Role": "Reference_Only_Disabled_For_MVP",
-  "Active": false
-},
+    "Engine_Role": "Reference_Only_Disabled_For_MVP",
+    "Active": false
+  },
   "Goal_Override_Controller": {
     "Execution_Position": "After_Weight_Condition_Adjustment_Before_Symptom_Adjustment",
     "Override_Strategy": "Controlled_Modifier_Layer",
@@ -2812,9 +2838,9 @@
     }
   },
   "Goal_Priority_Execution_Rules": {
-  "Engine_Role": "Reference_Only_Disabled_For_MVP",
-  "Active": false
-},
+    "Engine_Role": "Reference_Only_Disabled_For_MVP",
+    "Active": false
+  },
   "Goal_Safety_Guardrails": {
     "Max_Total_Adjustment_Cap": 0.3,
     "Prevent_Excessive_Deficit_Below_RER": true,
@@ -2826,37 +2852,37 @@
     ]
   },
   "Macronutrient_Ratio_Profiles": {
-  "Maintenance": {
-  "Protein": 0.32,
-  "Fat": 0.28,
-  "Carbs": 0.36,
-  "Fiber": 0.04
-},
-  "Muscle_Build": {
-    "Protein": 0.32,
-    "Fat": 0.20,
-    "Carbs": 0.48,
-    "Fiber": 0.04
-  },
-  "Fat_Loss_Priority": {
-    "Protein": 0.38,
-    "Fat": 0.15,
-    "Carbs": 0.47,
-    "Fiber": 0.06
-  },
-  "Weight_Gain_Priority": {
-    "Protein": 0.28,
-    "Fat": 0.22,
-    "Carbs": 0.50,
-    "Fiber": 0.04
-  },
+    "Maintenance": {
+      "Protein": 0.3,
+      "Fat": 0.18,
+      "Carbs": 0.52,
+      "Fiber": 0.04
+    },
+    "Muscle_Build": {
+      "Protein": 0.32,
+      "Fat": 0.2,
+      "Carbs": 0.48,
+      "Fiber": 0.04
+    },
+    "Fat_Loss_Priority": {
+      "Protein": 0.38,
+      "Fat": 0.15,
+      "Carbs": 0.47,
+      "Fiber": 0.06
+    },
+    "Weight_Gain_Priority": {
+      "Protein": 0.28,
+      "Fat": 0.22,
+      "Carbs": 0.5,
+      "Fiber": 0.04
+    },
     "Nutrient_Minimum_Standards": {
       "Puppy": {
         "Protein_Min": 0.225,
         "Fat_Min": 0.085,
         "Calcium_Min": 0.012,
         "Calcium_Max": 0.018,
-        "Phosphorus_Min": 0.010,
+        "Phosphorus_Min": 0.01,
         "Phosphorus_Max": 0.016,
         "Ca_P_Ratio_Min": 1.1,
         "Ca_P_Ratio_Max": 1.3
@@ -2937,18 +2963,13 @@
       "Carbohydrate": 4
     },
     "Formulas": {
-  "Energy_Fraction_Check": "Selected_Macro_Profile.Protein + Selected_Macro_Profile.Fat + Selected_Macro_Profile.Carbs must equal 1.0 exactly (hard validation before calculation)",
-
-  "Protein_g": "Final_kcal_per_day * Selected_Macro_Profile.Protein / 4",
-
-  "Fat_g": "Final_kcal_per_day * Selected_Macro_Profile.Fat / 9",
-
-  "Carbohydrate_g": "Final_kcal_per_day * Selected_Macro_Profile.Carbs / 4",
-
-  "Fiber_g": "Final_kcal_per_day * Selected_Macro_Profile.Fiber / 4 (treated as volumetric allocation; not included in energy fraction check)",
-
-  "Rounding_Rule": "Round to nearest integer gram only after all macro allocations complete; no intermediate rounding"
-},
+      "Energy_Fraction_Check": "Selected_Macro_Profile.Protein + Selected_Macro_Profile.Fat + Selected_Macro_Profile.Carbs must equal 1.0 exactly (hard validation before calculation)",
+      "Protein_g": "Final_kcal_per_day * Selected_Macro_Profile.Protein / 4",
+      "Fat_g": "Final_kcal_per_day * Selected_Macro_Profile.Fat / 9",
+      "Carbohydrate_g": "Final_kcal_per_day * Selected_Macro_Profile.Carbs / 4",
+      "Fiber_g": "Final_kcal_per_day * Selected_Macro_Profile.Fiber / 4 (treated as volumetric allocation; not included in energy fraction check)",
+      "Rounding_Rule": "Round to nearest integer gram only after all macro allocations complete; no intermediate rounding"
+    },
     "Selected_Macro_Profile_Source": "Macronutrient_Ratio_Profiles based on Goal_Override_Controller or default Maintenance",
     "Reference": "Scientific_Reference_Sources.NRC_Reference (Metabolizable Energy Factors)"
   },
@@ -3126,14 +3147,14 @@
     "Controlled_Protein_Source_Substitution_Logic": "Replace high-P protein (e.g., Chicken liver boiled) with low-P alternative from Food_Composition_Database (e.g., Cod fish boiled deboned); Recalculate Total_Phosphorus_g; Repeat until Phosphorus_per_1000_kcal <= 0.5 or no low-P options left (then reject)",
     "Deterministic_Phosphorus_Reduction_Rule": "Reduce portion of highest P-density ingredient by 0.1 decrements until compliant or min portion reached",
     "Activation_Condition": {
-  "Require_Renal_Flag": true,
-  "Lifecycle_Stage_Match": [
-    "Early_Senior",
-    "Senior",
-    "Geriatric"
-  ],
-  "Logic": "Activate only if renal_support_required == true AND lifecycle stage matches"
-},
+      "Require_Renal_Flag": true,
+      "Lifecycle_Stage_Match": [
+        "Early_Senior",
+        "Senior",
+        "Geriatric"
+      ],
+      "Logic": "Activate only if renal_support_required == true AND lifecycle stage matches"
+    },
     "Integrity_Requirements": {
       "No_Calcium_Stacking": true,
       "No_Phosphorus_Auto_Supplementation": true,
@@ -3269,8 +3290,6 @@
         "fat_g": 3.6,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.015,
-        "phosphorus_g": 0.24,
         "moisture_g": 65.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3281,7 +3300,9 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.5,
-        "category": "lean_animal_protein"
+        "category": "lean_animal_protein",
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.24
       },
       "Chicken thigh boiled": {
         "kcal_per_100g": 177,
@@ -3289,8 +3310,6 @@
         "fat_g": 8.0,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.012,
-        "phosphorus_g": 0.19,
         "moisture_g": 68.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3299,7 +3318,9 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "lean_animal_protein"
+        "category": "lean_animal_protein",
+        "calcium_g_per_100g": 0.012,
+        "phosphorus_g_per_100g": 0.19
       },
       "Egg whole boiled": {
         "kcal_per_100g": 155,
@@ -3307,8 +3328,6 @@
         "fat_g": 10.6,
         "carbs_g": 1.1,
         "fiber_g": 0.0,
-        "calcium_g": 0.05,
-        "phosphorus_g": 0.20,
         "moisture_g": 75.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3319,7 +3338,9 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "lean_animal_protein"
+        "category": "lean_animal_protein",
+        "calcium_g_per_100g": 0.05,
+        "phosphorus_g_per_100g": 0.2
       },
       "Rohu fish boiled deboned": {
         "kcal_per_100g": 97,
@@ -3327,8 +3348,6 @@
         "fat_g": 2.3,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.025,
-        "phosphorus_g": 0.22,
         "moisture_g": 78.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3337,7 +3356,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "lean_animal_protein"
+        "category": "lean_animal_protein",
+        "calcium_g_per_100g": 0.025,
+        "phosphorus_g_per_100g": 0.22
       },
       "Surmai fish boiled deboned": {
         "kcal_per_100g": 105,
@@ -3345,8 +3366,6 @@
         "fat_g": 2.5,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.03,
-        "phosphorus_g": 0.21,
         "moisture_g": 76.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3354,7 +3373,9 @@
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "lean_animal_protein"
+        "category": "lean_animal_protein",
+        "calcium_g_per_100g": 0.03,
+        "phosphorus_g_per_100g": 0.21
       },
       "Cod fish boiled deboned": {
         "kcal_per_100g": 82,
@@ -3362,8 +3383,6 @@
         "fat_g": 0.7,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.016,
-        "phosphorus_g": 0.20,
         "moisture_g": 81.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3371,7 +3390,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "senior_low_phosphorus_protein"
+        "category": "senior_low_phosphorus_protein",
+        "calcium_g_per_100g": 0.016,
+        "phosphorus_g_per_100g": 0.2
       },
       "Chicken liver boiled": {
         "kcal_per_100g": 167,
@@ -3379,8 +3400,6 @@
         "fat_g": 6.5,
         "carbs_g": 0.9,
         "fiber_g": 0.0,
-        "calcium_g": 0.01,
-        "phosphorus_g": 0.41,
         "moisture_g": 68.0,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
@@ -3388,7 +3407,9 @@
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.05,
-        "category": "controlled_organ"
+        "category": "controlled_organ",
+        "calcium_g_per_100g": 0.01,
+        "phosphorus_g_per_100g": 0.41
       },
       "Rice cooked white": {
         "kcal_per_100g": 130,
@@ -3396,42 +3417,40 @@
         "fat_g": 0.3,
         "carbs_g": 28.2,
         "fiber_g": 0.4,
-        "calcium_g": 0.003,
-        "phosphorus_g": 0.043,
         "moisture_g": 68.5,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "all"
         ],
         "max_safe_percentage_of_total_meal": 0.5,
-        "category": "carb_base"
+        "category": "carb_base",
+        "calcium_g_per_100g": 0.003,
+        "phosphorus_g_per_100g": 0.043
       },
       "Roti plain wheat (no salt, no oil)": {
-  "kcal_per_100g": 265,
-  "protein_g": 8.0,
-  "fat_g": 1.5,
-  "carbs_g": 50.0,
-  "fiber_g": 2.0,
-  "calcium_g": 0.015,
-  "phosphorus_g": 0.09,
-  "moisture_g": 35.0,
-  "digestibility_rating": "moderate",
-  "lifecycle_suitability": [
-    "adult",
-    "weight_loss",
-    "muscle_gain"
-  ],
-  "max_safe_percentage_of_total_meal": 0.5,
-  "category": "carb_base"
-},
+        "kcal_per_100g": 265,
+        "protein_g": 8.0,
+        "fat_g": 1.5,
+        "carbs_g": 50.0,
+        "fiber_g": 2.0,
+        "moisture_g": 35.0,
+        "digestibility_rating": "moderate",
+        "lifecycle_suitability": [
+          "adult",
+          "weight_loss",
+          "muscle_gain"
+        ],
+        "max_safe_percentage_of_total_meal": 0.5,
+        "category": "carb_base",
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.09
+      },
       "Oats cooked": {
         "kcal_per_100g": 71,
         "protein_g": 2.5,
         "fat_g": 1.5,
         "carbs_g": 12.0,
         "fiber_g": 1.7,
-        "calcium_g": 0.009,
-        "phosphorus_g": 0.077,
         "moisture_g": 83.0,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
@@ -3440,7 +3459,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "carb_base"
+        "category": "carb_base",
+        "calcium_g_per_100g": 0.009,
+        "phosphorus_g_per_100g": 0.077
       },
       "Moong dal cooked": {
         "kcal_per_100g": 105,
@@ -3448,8 +3469,6 @@
         "fat_g": 0.4,
         "carbs_g": 19.0,
         "fiber_g": 3.5,
-        "calcium_g": 0.014,
-        "phosphorus_g": 0.10,
         "moisture_g": 70.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3458,7 +3477,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "carb_base"
+        "category": "carb_base",
+        "calcium_g_per_100g": 0.014,
+        "phosphorus_g_per_100g": 0.1
       },
       "Pumpkin boiled": {
         "kcal_per_100g": 20,
@@ -3466,8 +3487,6 @@
         "fat_g": 0.1,
         "carbs_g": 4.9,
         "fiber_g": 1.1,
-        "calcium_g": 0.015,
-        "phosphorus_g": 0.044,
         "moisture_g": 94.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3477,7 +3496,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.35,
-        "category": "growth_safe_fiber_veg"
+        "category": "growth_safe_fiber_veg",
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.044
       },
       "Lauki boiled": {
         "kcal_per_100g": 15,
@@ -3485,8 +3506,6 @@
         "fat_g": 0.1,
         "carbs_g": 3.4,
         "fiber_g": 0.9,
-        "calcium_g": 0.016,
-        "phosphorus_g": 0.025,
         "moisture_g": 96.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3496,7 +3515,9 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "growth_safe_fiber_veg"
+        "category": "growth_safe_fiber_veg",
+        "calcium_g_per_100g": 0.016,
+        "phosphorus_g_per_100g": 0.025
       },
       "Carrot boiled": {
         "kcal_per_100g": 35,
@@ -3504,8 +3525,6 @@
         "fat_g": 0.2,
         "carbs_g": 8.2,
         "fiber_g": 3.0,
-        "calcium_g": 0.033,
-        "phosphorus_g": 0.035,
         "moisture_g": 89.0,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
@@ -3514,7 +3533,9 @@
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "growth_safe_fiber_veg"
+        "category": "growth_safe_fiber_veg",
+        "calcium_g_per_100g": 0.033,
+        "phosphorus_g_per_100g": 0.035
       },
       "Sweet potato boiled": {
         "kcal_per_100g": 86,
@@ -3522,8 +3543,6 @@
         "fat_g": 0.1,
         "carbs_g": 20.1,
         "fiber_g": 3.0,
-        "calcium_g": 0.03,
-        "phosphorus_g": 0.047,
         "moisture_g": 77.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3532,7 +3551,9 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.25,
-        "category": "carb_base"
+        "category": "carb_base",
+        "calcium_g_per_100g": 0.03,
+        "phosphorus_g_per_100g": 0.047
       },
       "Coconut oil": {
         "kcal_per_100g": 862,
@@ -3540,8 +3561,6 @@
         "fat_g": 100.0,
         "carbs_g": 0.0,
         "fiber_g": 0.0,
-        "calcium_g": 0.0,
-        "phosphorus_g": 0.0,
         "moisture_g": 0.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -3549,315 +3568,318 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.05,
-        "category": "moderate_fat_source"
+        "category": "moderate_fat_source",
+        "calcium_g_per_100g": 0.0,
+        "phosphorus_g_per_100g": 0.0
       },
-    "Paneer low fat": {
-  "kcal_per_100g": 200,
-  "protein_g": 18,
-  "fat_g": 12,
-  "carbs_g": 3,
-  "fiber_g": 0,
-  "calcium_g_per_100g": 0.2,
-  "phosphorus_g_per_100g": 0.15,
-  "moisture_g": 50.0,
-  "category": "veg_protein"
-},
-"Tofu firm": {
-  "kcal_per_100g": 144,
-  "protein_g": 15,
-  "fat_g": 8,
-  "carbs_g": 3,
-  "fiber_g": 1,
-  "calcium_g_per_100g": 0.35,
-  "phosphorus_g_per_100g": 0.19,
-  "moisture_g": 70.0,
-  "category": "veg_protein"
-},
-"Masoor dal cooked": {
-  "kcal_per_100g": 116,
-  "protein_g": 9,
-  "fat_g": 0.4,
-  "carbs_g": 20,
-  "fiber_g": 8,
-  "calcium_g_per_100g": 0.019,
-  "phosphorus_g_per_100g": 0.18,
-  "moisture_g": 70.0,
-  "category": "veg_protein"
-}
+      "Paneer low fat": {
+        "kcal_per_100g": 200,
+        "protein_g": 18,
+        "fat_g": 12,
+        "carbs_g": 3,
+        "fiber_g": 0,
+        "category": "veg_protein",
+        "calcium_g_per_100g": 0.2,
+        "phosphorus_g_per_100g": 0.15,
+        "moisture_g": 50.0
+      },
+      "Tofu firm": {
+        "kcal_per_100g": 144,
+        "protein_g": 15,
+        "fat_g": 8,
+        "carbs_g": 3,
+        "fiber_g": 1,
+        "category": "veg_protein",
+        "calcium_g_per_100g": 0.35,
+        "phosphorus_g_per_100g": 0.19,
+        "moisture_g": 70.0
+      },
+      "Masoor dal cooked": {
+        "kcal_per_100g": 116,
+        "protein_g": 9,
+        "fat_g": 0.4,
+        "carbs_g": 20,
+        "fiber_g": 8,
+        "category": "veg_protein",
+        "calcium_g_per_100g": 0.019,
+        "phosphorus_g_per_100g": 0.18,
+        "moisture_g": 70.0
+      }
     },
     "Diet_Rotation_Config": {
-        "non_veg_proteins": [
-          "Chicken breast boiled",
+      "non_veg_proteins": [
+        "Chicken breast boiled",
+        "Egg whole boiled",
+        "Rohu fish boiled deboned"
+      ],
+      "carb_sources": [
+        "Rice cooked white",
+        "Sweet potato boiled",
+        "Sweet potato boiled",
+        "Roti plain wheat (no salt, no oil)",
+        "Sweet potato boiled",
+        "Roti plain wheat (no salt, no oil)",
+        "Rice cooked white"
+      ],
+      "fiber_sources": [
+        "Pumpkin boiled",
+        "Lauki boiled",
+        "Carrot boiled"
+      ],
+      "veg": {
+        "protein_sources": [
+          "Moong dal cooked",
+          "Masoor dal cooked",
+          "Tofu firm",
+          "Moong dal cooked"
+        ],
+        "carb_sources": [
+          "Rice cooked white",
+          "Oats cooked"
+        ],
+        "fiber_sources": [
+          "Spinach",
+          "Carrot boiled",
+          "Pumpkin boiled"
+        ]
+      }
+    },
+    "rules": {
+      "max_same_protein_streak": 2,
+      "rotate_carbs_daily": true,
+      "fiber_required_daily": true
+    },
+    "ingredient_substitution_map": {
+      "Protein_Animal": {
+        "Chicken breast boiled": [
           "Egg whole boiled",
           "Rohu fish boiled deboned"
         ],
-        "carb_sources": [
-  "Rice cooked white",
-  "Sweet potato boiled",
-  "Oats cooked",
-  "Roti plain wheat (no salt, no oil)",
-  "Sweet potato boiled",
-  "Roti plain wheat (no salt, no oil)",
-  "Rice cooked white"
-],
-        "fiber_sources": [
-  "Lauki boiled",
-  "Carrot boiled",
-  "Pumpkin boiled"
-],
-        "veg": {
-          "protein_sources": [
-  "Moong dal cooked",
-  "Masoor dal cooked",
-  "Tofu firm",
-  "Moong dal cooked"
-],
-          "carb_sources": [
-            "Rice cooked white",
-            "Oats cooked"
-          ],
-          "fiber_sources": [
-            "Spinach",
-            "Carrot boiled",
-            "Pumpkin boiled"
-          ]
-        }
-      },
-      "rules": {
-        "max_same_protein_streak": 2,
-        "rotate_carbs_daily": true,
-        "fiber_required_daily": true
-      },
-      "ingredient_substitution_map": {
-        "Protein_Animal": {
-          "Chicken breast boiled": [
-            "Egg whole boiled",
-            "Rohu fish boiled deboned"
-          ],
-          "Egg whole boiled": [
-            "Chicken breast boiled"
-          ],
-          "Rohu fish boiled deboned": [
-            "Chicken breast boiled"
-          ]
-        },
-        "Carb_Base": {
-          "Rice cooked white": [
-            "Moong dal cooked",
-            "Sweet potato boiled"
-          ],
-          "Sweet potato boiled": [
-            "Rice cooked white"
-          ]
-        },
-        "Fiber_Veg_LowCal": {
-          "Pumpkin boiled": [
-            "Lauki boiled",
-            "Carrot boiled"
-          ],
-          "Lauki boiled": [
-            "Pumpkin boiled",
-            "Carrot boiled"
-          ]
-        }
-      },
-      "vegetable_safety_list": {
-        "description": "Used to prevent fiber overload, gas risk and inappropriate lifecycle usage",
-        "items": [
-          {
-            "name": "Pumpkin boiled",
-            "fiber_density_category": "low",
-            "gas_risk_flag": false,
-            "max_pct": 0.35,
-            "weight_loss_ok": true,
-            "growth_ok": true
-          },
-          {
-            "name": "Lauki boiled",
-            "fiber_density_category": "low",
-            "gas_risk_flag": false,
-            "max_pct": 0.4,
-            "weight_loss_ok": true,
-            "growth_ok": true
-          },
-          {
-            "name": "Carrot boiled",
-            "fiber_density_category": "moderate",
-            "gas_risk_flag": false,
-            "max_pct": 0.2,
-            "weight_loss_ok": true,
-            "growth_ok": true
-          },
-          {
-            "name": "Sweet potato boiled",
-            "fiber_density_category": "moderate",
-            "gas_risk_flag": false,
-            "max_pct": 0.25,
-            "weight_loss_ok": false,
-            "growth_ok": true
-          },
-          {
-            "name": "Spinach",
-            "fiber_density_category": "high",
-            "gas_risk_flag": true,
-            "max_pct": 0.08,
-            "weight_loss_ok": true,
-            "growth_ok": false
-          },
-          {
-            "name": "Beans (french)",
-            "fiber_density_category": "moderate",
-            "gas_risk_flag": true,
-            "max_pct": 0.15,
-            "weight_loss_ok": true,
-            "growth_ok": true
-          }
-        ]
-      },
-      "weekly_meal_cycle_system": {
-        "Description": "Deterministic 7-day rotation — grams calculated from final kcal target",
-        "Daily_Split_Pattern": {
-          "default": [
-            0.4,
-            0.2,
-            0.4
-          ],
-          "puppy": [
-            0.3,
-            0.3,
-            0.4
-          ],
-          "senior": [
-            0.35,
-            0.3,
-            0.35
-          ]
-        },
-        "Allocation_Priority": [
-          "protein_animal → target protein g",
-          "fat_from_protein + added fat source",
-          "carb_base → remaining calories",
-          "fiber_veg → volume & satiety (max % respected)"
+        "Egg whole boiled": [
+          "Chicken breast boiled"
         ],
-        "Validation_Before_Output": [
-          "Ca g / 1000 kcal ∈ [3.0, 4.5] during growth (Lifecycle_Growth_Model_20_Stages)",
-          "Ca:P ratio ∈ [1.1, 1.4] during growth",
-          "Protein % DM ≥ Nutrient_Standards.Growth_Large_Breed.Min_Protein_Percent_DM or Adult_Maintenance",
-          "Macro sum ≈ 1.0 (±0.02 tolerance)",
-          "No prohibited proteins used"
+        "Rohu fish boiled deboned": [
+          "Chicken breast boiled"
         ]
       },
-      "Therapeutic_Meals": {
-  "GI_Support": {
-    "foods": ["Khichdi"],
-    "notes": "Light, low fat, easy digestible"
-  },
-  "therapeutic_meals": {
-  "GI_Support": ["Khichdi"],
-  "Recovery": ["Daliya"],
-  "Digestive_Cooling": ["Curd rice"]
-},
-  "Recovery": {
-    "foods": ["Daliya"],
-    "notes": "Energy restoring, moderate carb"
-  },
-  "Digestive_Cooling": {
-    "foods": ["Curd rice"],
-    "notes": "Soothing for GI irritation"
-  }
-}
+      "Carb_Base": {
+        "Rice cooked white": [
+          "Moong dal cooked",
+          "Sweet potato boiled"
+        ],
+        "Sweet potato boiled": [
+          "Rice cooked white"
+        ]
+      },
+      "Fiber_Veg_LowCal": {
+        "Pumpkin boiled": [
+          "Lauki boiled",
+          "Carrot boiled"
+        ],
+        "Lauki boiled": [
+          "Pumpkin boiled",
+          "Carrot boiled"
+        ]
+      }
     },
-    "Simple_Persistence_Layer_v1": {
-  "Mode": "MVP_Minimal",
-  
-  "Pet_Profile": {
-    "pet_id": "string",
-    "breed": "string",
-    "age_months": "integer",
-    "current_weight_kg": "number",
-    "previous_weight_kg": "number",
-    "activity_level": "string",
-    "goal": "string",
-    "bcs_last": "integer",
-    "renal_support_required": "boolean",
-    "last_updated_date": "ISO_date"
+    "vegetable_safety_list": {
+      "description": "Used to prevent fiber overload, gas risk and inappropriate lifecycle usage",
+      "items": [
+        {
+          "name": "Pumpkin boiled",
+          "fiber_density_category": "low",
+          "gas_risk_flag": false,
+          "max_pct": 0.35,
+          "weight_loss_ok": true,
+          "growth_ok": true
+        },
+        {
+          "name": "Lauki boiled",
+          "fiber_density_category": "low",
+          "gas_risk_flag": false,
+          "max_pct": 0.4,
+          "weight_loss_ok": true,
+          "growth_ok": true
+        },
+        {
+          "name": "Carrot boiled",
+          "fiber_density_category": "moderate",
+          "gas_risk_flag": false,
+          "max_pct": 0.2,
+          "weight_loss_ok": true,
+          "growth_ok": true
+        },
+        {
+          "name": "Sweet potato boiled",
+          "fiber_density_category": "moderate",
+          "gas_risk_flag": false,
+          "max_pct": 0.25,
+          "weight_loss_ok": false,
+          "growth_ok": true
+        },
+        {
+          "name": "Spinach",
+          "fiber_density_category": "high",
+          "gas_risk_flag": true,
+          "max_pct": 0.08,
+          "weight_loss_ok": true,
+          "growth_ok": false
+        },
+        {
+          "name": "Beans (french)",
+          "fiber_density_category": "moderate",
+          "gas_risk_flag": true,
+          "max_pct": 0.15,
+          "weight_loss_ok": true,
+          "growth_ok": true
+        }
+      ]
+    },
+    "weekly_meal_cycle_system": {
+      "Description": "Deterministic 7-day rotation — grams calculated from final kcal target",
+      "Daily_Split_Pattern": {
+        "default": [
+          0.4,
+          0.2,
+          0.4
+        ],
+        "puppy": [
+          0.3,
+          0.3,
+          0.4
+        ],
+        "senior": [
+          0.35,
+          0.3,
+          0.35
+        ]
+      },
+      "Allocation_Priority": [
+        "protein_animal → target protein g",
+        "fat_from_protein + added fat source",
+        "carb_base → remaining calories",
+        "fiber_veg → volume & satiety (max % respected)"
+      ],
+      "Validation_Before_Output": [
+        "Ca g / 1000 kcal ∈ [3.0, 4.5] during growth (Lifecycle_Growth_Model_20_Stages)",
+        "Ca:P ratio ∈ [1.1, 1.4] during growth",
+        "Protein % DM ≥ Nutrient_Standards.Growth_Large_Breed.Min_Protein_Percent_DM or Adult_Maintenance",
+        "Macro sum ≈ 1.0 (±0.02 tolerance)",
+        "No prohibited proteins used"
+      ]
+    },
+    "Therapeutic_Meals": {
+      "GI_Support": {
+        "foods": [
+          "Khichdi"
+        ],
+        "notes": "Light, low fat, easy digestible"
+      },
+      "Recovery": {
+        "foods": [
+          "Daliya"
+        ],
+        "notes": "Energy restoring, moderate carb"
+      },
+      "Digestive_Cooling": {
+        "foods": [
+          "Curd rice"
+        ],
+        "notes": "Soothing for GI irritation"
+      }
+    },
+    "therapeutic_meals": {
+      "GI_Support": [
+        "Khichdi"
+      ],
+      "Recovery": [
+        "Daliya"
+      ],
+      "Digestive_Cooling": [
+        "Curd rice"
+      ]
+    }
   },
-
-  "Weight_History_Config": {
-    "store_last_only": true,
-    "optional_full_history_array": false
+  "Simple_Persistence_Layer_v1": {
+    "Mode": "MVP_Minimal",
+    "Pet_Profile": {
+      "pet_id": "string",
+      "breed": "string",
+      "age_months": "integer",
+      "current_weight_kg": "number",
+      "previous_weight_kg": "number",
+      "activity_level": "string",
+      "goal": "string",
+      "bcs_last": "integer",
+      "renal_support_required": "boolean",
+      "last_updated_date": "ISO_date"
+    },
+    "Weight_History_Config": {
+      "store_last_only": true,
+      "optional_full_history_array": false
+    },
+    "Recalculation_Trigger": {
+      "On_Weight_Update": [
+        "Store previous_weight_kg",
+        "Update current_weight_kg",
+        "Run BCS_Automatic_Detection_Logic",
+        "Run Master_Calorie_Adjustment_Pipeline",
+        "Run Macro_Conversion_Engine"
+      ],
+      "On_Goal_Update": [
+        "Run Goal_Override_Controller",
+        "Recalculate Final_kcal_per_day",
+        "Recalculate macros"
+      ],
+      "On_Activity_Update": [
+        "Recalculate Final_kcal_per_day"
+      ]
+    },
+    "Integrity_Rules": {
+      "Never_Modify_Core_Engines": true,
+      "Only_Trigger_Recalculation": true,
+      "Deterministic_Output_Must_Remain": true
+    }
   },
-
-  "Recalculation_Trigger": {
-    "On_Weight_Update": [
-      "Store previous_weight_kg",
-      "Update current_weight_kg",
-      "Run BCS_Automatic_Detection_Logic",
-      "Run Master_Calorie_Adjustment_Pipeline",
-      "Run Macro_Conversion_Engine"
+  "Deterministic_Gram_Allocator_v1": {
+    "Execution_Position": "After Macro_Conversion_Engine",
+    "Allocation_Order": [
+      "Allocate_Primary_Animal_Protein",
+      "Allocate_Fat_From_Protein",
+      "Add_Additional_Fat_If_Required",
+      "Allocate_Carb_Base",
+      "Allocate_Fiber_Vegetable"
     ],
-    "On_Goal_Update": [
-      "Run Goal_Override_Controller",
-      "Recalculate Final_kcal_per_day",
-      "Recalculate macros"
+    "Protein_Allocation_Rule": {
+      "Primary_Source": "First allowed protein from Diet_Rotation_Config.non_veg_proteins",
+      "Max_Percentage_Of_Meal": 0.5,
+      "Adjustment_Method": "Increase grams until Protein_g target met"
+    },
+    "Fat_Adjustment_Rule": {
+      "If_Fat_From_Protein < Target_Fat_g": "Add Coconut oil incrementally",
+      "Increment_Step_g": 1,
+      "Stop_When": "Fat_g target reached"
+    },
+    "Carb_Allocation_Rule": {
+      "Primary_Carb_Source": "Rotate deterministically using week_number % carb_sources_length",
+      "Fill_Remaining_Calories": true
+    },
+    "Fiber_Allocation_Rule": {
+      "Mandatory_Daily": true,
+      "Max_Percentage_Constraint": "Respect vegetable_safety_list.max_pct",
+      "Low_Calorie_First": true
+    },
+    "Validation_Layer": [
+      "Run Mineral_Computation_Engine",
+      "Run Calcium_Supplementation_Module if growth",
+      "Run Senior_Phosphorus_Control_Module if renal flag true",
+      "Run Dry_Matter_Validation_Engine",
+      "Run Macronutrient_Safety_Validation"
     ],
-    "On_Activity_Update": [
-      "Recalculate Final_kcal_per_day"
-    ]
-  },
-
-  "Integrity_Rules": {
-    "Never_Modify_Core_Engines": true,
-    "Only_Trigger_Recalculation": true,
-    "Deterministic_Output_Must_Remain": true
-  }
-},
-"Deterministic_Gram_Allocator_v1": {
-  "Execution_Position": "After Macro_Conversion_Engine",
-
-  "Allocation_Order": [
-    "Allocate_Primary_Animal_Protein",
-    "Allocate_Fat_From_Protein",
-    "Add_Additional_Fat_If_Required",
-    "Allocate_Carb_Base",
-    "Allocate_Fiber_Vegetable"
-  ],
-
-  "Protein_Allocation_Rule": {
-    "Primary_Source": "First allowed protein from Diet_Rotation_Config.non_veg_proteins",
-    "Max_Percentage_Of_Meal": 0.5,
-    "Adjustment_Method": "Increase grams until Protein_g target met"
-  },
-
-  "Fat_Adjustment_Rule": {
-    "If_Fat_From_Protein < Target_Fat_g": "Add Coconut oil incrementally",
-    "Increment_Step_g": 1,
-    "Stop_When": "Fat_g target reached"
-  },
-
-  "Carb_Allocation_Rule": {
-    "Primary_Carb_Source": "Rotate deterministically using week_number % carb_sources_length",
-    "Fill_Remaining_Calories": true
-  },
-
-  "Fiber_Allocation_Rule": {
-    "Mandatory_Daily": true,
-    "Max_Percentage_Constraint": "Respect vegetable_safety_list.max_pct",
-    "Low_Calorie_First": true
-  },
-
-  "Validation_Layer": [
-    "Run Mineral_Computation_Engine",
-    "Run Calcium_Supplementation_Module if growth",
-    "Run Senior_Phosphorus_Control_Module if renal flag true",
-    "Run Dry_Matter_Validation_Engine",
-    "Run Macronutrient_Safety_Validation"
-  ],
-
-  "Determinism_Guarantee": {
-    "No_Random_Selection": true,
-    "Fixed_Rotation_Formula": "index = week_number % list_length",
-    "Same_Input_Same_Output": true
+    "Determinism_Guarantee": {
+      "No_Random_Selection": true,
+      "Fixed_Rotation_Formula": "index = week_number % list_length",
+      "Same_Input_Same_Output": true
+    }
   }
 }
-  }

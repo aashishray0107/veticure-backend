@@ -441,7 +441,7 @@
         0.47
       ],
       "Percent_Adult_Weight_Female": [
-        0.40,
+        0.4,
         0.48
       ],
       "BCS_Target": {
@@ -676,8 +676,8 @@
         0.88
       ],
       "Percent_Adult_Weight_Female": [
-        0.80,
-        0.90
+        0.8,
+        0.9
       ],
       "BCS_Target": {
         "min_bcs": 4,
@@ -722,7 +722,7 @@
         27.0
       ],
       "Percent_Adult_Weight_Male": [
-        0.90,
+        0.9,
         0.91
       ],
       "Percent_Adult_Weight_Female": [
@@ -2123,11 +2123,11 @@
   },
   "Macronutrient_Ratio_Profiles": {
     "Maintenance": {
-  "Protein": 0.32,
-  "Fat": 0.28,
-  "Carbs": 0.36,
-  "Fiber": 0.04
-},
+      "Protein": 0.3,
+      "Fat": 0.18,
+      "Carbs": 0.52,
+      "Fiber": 0.04
+    },
     "Muscle_Build": {
       "Protein": 0.36,
       "Fat": 0.19,
@@ -2152,7 +2152,7 @@
         "Fat_Min": 0.085,
         "Calcium_Min": 0.012,
         "Calcium_Max": 0.018,
-        "Phosphorus_Min": 0.010,
+        "Phosphorus_Min": 0.01,
         "Phosphorus_Max": 0.016,
         "Ca_P_Ratio_Min": 1.1,
         "Ca_P_Ratio_Max": 1.3
@@ -2590,7 +2590,7 @@
         "carbs_g": 1.1,
         "fiber_g": 0.0,
         "calcium_g_per_100g": 0.05,
-        "phosphorus_g_per_100g": 0.20,
+        "phosphorus_g_per_100g": 0.2,
         "moisture_g": 75.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -2645,7 +2645,7 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "calcium_g_per_100g": 0.016,
-        "phosphorus_g_per_100g": 0.20,
+        "phosphorus_g_per_100g": 0.2,
         "moisture_g": 81.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -2731,7 +2731,7 @@
         "carbs_g": 19.0,
         "fiber_g": 3.5,
         "calcium_g_per_100g": 0.014,
-        "phosphorus_g_per_100g": 0.10,
+        "phosphorus_g_per_100g": 0.1,
         "moisture_g": 70.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
@@ -2871,14 +2871,14 @@
         "Rohu fish boiled deboned"
       ],
       "carb_sources": [
-  "Rice cooked white",
-  "Sweet potato boiled",
-  "Oats cooked",
-  "Roti plain wheat (no salt, no oil)",
-  "Sweet potato boiled",
-  "Roti plain wheat (no salt, no oil)",
-  "Rice cooked white"
-],
+        "Rice cooked white",
+        "Sweet potato boiled",
+        "Sweet potato boiled",
+        "Roti plain wheat (no salt, no oil)",
+        "Sweet potato boiled",
+        "Roti plain wheat (no salt, no oil)",
+        "Rice cooked white"
+      ],
       "fiber_sources": [
         "Pumpkin boiled",
         "Lauki boiled",
@@ -2886,11 +2886,11 @@
       ],
       "veg": {
         "protein_sources": [
-  "Moong dal cooked",
-  "Masoor dal cooked",
-  "Tofu firm",
-  "Moong Dal cooked"
-],
+          "Moong dal cooked",
+          "Masoor dal cooked",
+          "Tofu firm",
+          "Moong dal cooked"
+        ],
         "carb_sources": [
           "Rice cooked white",
           "Oats cooked"
