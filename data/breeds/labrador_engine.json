@@ -50,6 +50,28 @@
       "Age-related sarcopenia with fat gain"
     ]
   },
+  "Engine_Metadata": {
+    "Engine_Version": "1.6.0",
+    "Architecture_Type": "Deterministic Rule-Based Veterinary Nutrition Engine",
+    "Calorie_Model": "RER_based_with_multi_layer_adjustments",
+    "BCS_Model": "Weight_Deviation_plus_Questionnaire_Fusion",
+    "Hydration_Model": "Base_ml_per_kg_with_override_multipliers",
+    "Validation_Mode": "Strict",
+    "Changelog": "v1.6.0: Two final consistency fixes. Adult_Stage_Nutrition_1_7Y.Hydration_Target 55->70 ml/kg/day (NRC 2006 aligned). Seasonal_Adjustment.Summer +0.05->-0.05 (summer = less calories, not more; now consistent with Master_Pipeline.Seasonal_Adjustment_Values). v1.5.0: BCS 4 Maintenance, double-count fix, Paneer/Tofu/Masoor fields. v1.4.0: Macadamia nuts. v1.3.1: Macro P+F+C=1.0. v1.3.0: Clinical alignment. v1.2.0: Structural fixes.",
+    "Clinical_Compliance_Statement": "PET WELLNESS NUTRITION TOOL — not a veterinary diagnostic instrument. Core energy formulas (RER/MER) and nutrient standards align with NRC 2006 and AAFCO 2023. Symptom adjustments are conservative estimates — not clinically validated protocols. BCS deviation mapping and seasonal values are computational approximations. ALL persistent health concerns require licensed veterinary consultation.",
+    "Reference_Standards": [
+      "NRC (2006) Nutrient Requirements of Dogs and Cats — National Academies Press",
+      "AAFCO 2023 Official Publication — Dog Nutrient Profiles",
+      "AAHA (2021) Nutrition and Weight Management Guidelines — JAAHA 57(4):153-178",
+      "WSAVA Global Nutrition Guidelines (2011 updated 2020)",
+      "WSAVA BCS System — Laflamme DP (1997) Canine Practice 22:10-15",
+      "BSAVA Obesity Position Statement (2025)",
+      "Zanghi et al. (2018) Total Water Intake in Dogs — Front Vet Sci PMC6305449",
+      "Today's Veterinary Nurse — Nutritional Management of Acute Gastroenteritis (2023)",
+      "CAVN/VCA Hospitals — Nutrition for Dogs with GI Upset (2024)",
+      "Roush et al. (2010) EPA/DHA for OA — JAVMA"
+    ]
+  },
   "Calorie_Authority_Controller": {
     "Authoritative_Source": "Master_Calorie_Adjustment_Pipeline",
     "Dynamic_Calorie_Generation_Method": "RER_MER_Adjustment_Sequence",
@@ -114,6 +136,88 @@
         1.4
       ]
     }
+  },
+  "Input_Validation": {
+    "Required_Inputs": [
+      "weight_kg",
+      "age_months_or_years",
+      "activity_level"
+    ],
+    "Weight_Range_kg": [
+      0.2,
+      60
+    ],
+    "Age_Range_Months": [
+      0,
+      180
+    ],
+    "Allowed_Activity_Levels": [
+      "Low_Activity",
+      "Moderate_Activity",
+      "High_Activity",
+      "Working_Dog"
+    ],
+    "Allowed_BCS_Categories": [
+      "Underweight",
+      "Ideal",
+      "Overweight",
+      "Obese"
+    ],
+    "Allowed_Seasons": [
+      "Summer",
+      "Winter",
+      "Rainy",
+      "Normal",
+      "Humid",
+      "Cold",
+      "Hot"
+    ],
+    "Weight_Must_Be_Positive": true,
+    "BCS_Must_Be_1_to_9": true,
+    "Age_Must_Be_Non_Negative": true,
+    "Age_Units_Accepted": [
+      "weeks",
+      "months",
+      "years"
+    ],
+    "Reject_Null_Core_Inputs": true,
+    "Optional_Flags": [
+      "renal_support_required"
+    ]
+  },
+  "Age_Resolution_Control": {
+    "Priority_Order": [
+      "Lifecycle_Growth_Model_20_Stages",
+      "Ideal_Weight_Reference_Table",
+      "Weight_By_Age",
+      "Age_Wise_Diet",
+      "Puppy_Month_By_Month_Nutrition_0_12M"
+    ],
+    "Matching_Rule": "Match smallest valid numeric age window first",
+    "Unit_Normalization": "Convert weeks and years into months before comparison",
+    "Unit_Conversion_Formulas": {
+      "Weeks_To_Months": "weeks / 4.345",
+      "Years_To_Months": "years * 12"
+    },
+    "Conflict_Handling": "If overlapping, choose most specific (narrowest range)"
+  },
+  "Stage_Resolver_Engine": {
+    "Input": [
+      "age_months",
+      "age_years"
+    ],
+    "Resolution_Order": [
+      "Lifecycle_Growth_Model_20_Stages",
+      "Weight_By_Age",
+      "Ideal_Weight_Reference_Table",
+      "Age_Wise_Diet"
+    ],
+    "Matching_Rule": "Match numeric min/max boundaries; prioritize most specific age bracket",
+    "Output": [
+      "Resolved_Stage_Name",
+      "Resolved_Weight_Bracket",
+      "Resolved_Diet_Block"
+    ]
   },
   "Weight_By_Age": [
     {
@@ -227,6 +331,118 @@
         ],
         "Diet_Advice": "Joint support, easy chew meals"
       }
+    }
+  ],
+  "Ideal_Weight_Reference_Table": [
+    {
+      "min_age_weeks": 0,
+      "max_age_weeks": 2,
+      "age_label": "0-2 weeks",
+      "Male_Min_kg": 0.2,
+      "Male_Max_kg": 0.9,
+      "Female_Min_kg": 0.2,
+      "Female_Max_kg": 0.9,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_weeks": 2,
+      "max_age_weeks": 4,
+      "age_label": "2-4 weeks",
+      "Male_Min_kg": 0.9,
+      "Male_Max_kg": 2.5,
+      "Female_Min_kg": 0.8,
+      "Female_Max_kg": 2.7,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_weeks": 4,
+      "max_age_weeks": 8,
+      "age_label": "4-8 weeks",
+      "Male_Min_kg": 4.5,
+      "Male_Max_kg": 6.8,
+      "Female_Min_kg": 3.6,
+      "Female_Max_kg": 5.5,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 2,
+      "max_age_months": 3,
+      "age_label": "2-3 months",
+      "Male_Min_kg": 9.0,
+      "Male_Max_kg": 13.6,
+      "Female_Min_kg": 6.8,
+      "Female_Max_kg": 11.3,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 3,
+      "max_age_months": 4,
+      "age_label": "3-4 months",
+      "Male_Min_kg": 13.6,
+      "Male_Max_kg": 18.1,
+      "Female_Min_kg": 11.3,
+      "Female_Max_kg": 15.9,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 4,
+      "max_age_months": 5,
+      "age_label": "4-5 months",
+      "Male_Min_kg": 15.9,
+      "Male_Max_kg": 20.4,
+      "Female_Min_kg": 13.6,
+      "Female_Max_kg": 18.1,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 5,
+      "max_age_months": 6,
+      "age_label": "5-6 months",
+      "Male_Min_kg": 18.1,
+      "Male_Max_kg": 24.9,
+      "Female_Min_kg": 15.9,
+      "Female_Max_kg": 20.4,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 6,
+      "max_age_months": 8,
+      "age_label": "6-8 months",
+      "Male_Min_kg": 22.7,
+      "Male_Max_kg": 29.5,
+      "Female_Min_kg": 18.1,
+      "Female_Max_kg": 24.9,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 8,
+      "max_age_months": 10,
+      "age_label": "8-10 months",
+      "Male_Min_kg": 24.9,
+      "Male_Max_kg": 31.8,
+      "Female_Min_kg": 20.4,
+      "Female_Max_kg": 27.2,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 10,
+      "max_age_months": 12,
+      "age_label": "10-12 months",
+      "Male_Min_kg": 27.2,
+      "Male_Max_kg": 34.0,
+      "Female_Min_kg": 22.7,
+      "Female_Max_kg": 29.5,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
+    },
+    {
+      "min_age_months": 12,
+      "max_age_months": null,
+      "age_label": "12+ months",
+      "Male_Min_kg": 29.5,
+      "Male_Max_kg": 36.3,
+      "Female_Min_kg": 24.9,
+      "Female_Max_kg": 31.8,
+      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
     }
   ],
   "Lifecycle_Growth_Model_20_Stages": [
@@ -350,6 +566,7 @@
         "max_bcs": 4
       },
       "BCS_Note": "lean",
+      "MER_Multiplier": 3.0,
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Deciduous dentition erupts; passive Ca absorption window opens",
@@ -365,7 +582,6 @@
         "content": "Transition to solid puppy food; MER 3x RER",
         "engine_relevance": false
       },
-      "MER_Multiplier": 3.0,
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Low-impact play; no stairs or jumping off furniture",
@@ -397,6 +613,11 @@
         "min_bcs": 4,
         "max_bcs": 4
       },
+      "MER_Multiplier_Range": [
+        3.0,
+        2.0
+      ],
+      "By_Weeks": 16,
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Rapid limb elongation; all secondary ossification centers visible",
@@ -412,11 +633,6 @@
         "content": "MER begins shifting from 3x to 2x RER by 16 weeks",
         "engine_relevance": false
       },
-      "MER_Multiplier_Range": [
-        3.0,
-        2.0
-      ],
-      "By_Weeks": 16,
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Controlled play; avoid forced running or repetitive fetch",
@@ -494,6 +710,7 @@
         "min_bcs": 4,
         "max_bcs": 4
       },
+      "MER_Multiplier": 2.0,
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Anconeal process of ulna should fuse by 5 months",
@@ -509,7 +726,6 @@
         "content": "MER stabilizing toward 2x RER",
         "engine_relevance": false
       },
-      "MER_Multiplier": 2.0,
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Gentle leash walks; no forced jogging or agility",
@@ -633,15 +849,15 @@
         "min_bcs": 4,
         "max_bcs": 5
       },
+      "Height_Range_Inches": [
+        20,
+        23
+      ],
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Stature (height) largely stabilized",
         "engine_relevance": false
       },
-      "Height_Range_Inches": [
-        20,
-        23
-      ],
       "Orthopedic_Risk_Window": {
         "type": "descriptive_note",
         "content": "Hip and elbow screening window opens",
@@ -683,6 +899,10 @@
         "min_bcs": 4,
         "max_bcs": 5
       },
+      "MER_Adult_Factor_Range": [
+        1.6,
+        1.8
+      ],
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Most major long-bone physes closed by 12 months",
@@ -698,10 +918,6 @@
         "content": "MER transitions to adult factors x RER",
         "engine_relevance": false
       },
-      "MER_Adult_Factor_Range": [
-        1.6,
-        1.8
-      ],
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Build endurance; still limit intense impact sports",
@@ -1009,6 +1225,7 @@
         "min_bcs": 4,
         "max_bcs": 5
       },
+      "Metabolic_Slowdown_Percent": 0.1,
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "Early degenerative changes possible in hips/elbows",
@@ -1024,7 +1241,6 @@
         "content": "MER may decrease 0.10 by end of this phase",
         "engine_relevance": false
       },
-      "Metabolic_Slowdown_Percent": 0.1,
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Regular low-impact exercise; avoid sudden high-intensity bursts",
@@ -1056,6 +1272,7 @@
         "min_bcs": 4,
         "max_bcs": 5
       },
+      "Metabolic_Slowdown_Percent": 0.15,
       "Skeletal_Maturity_Note": {
         "type": "descriptive_note",
         "content": "OA and spinal changes more common",
@@ -1071,7 +1288,6 @@
         "content": "Metabolic slowdown 0.15; sarcopenia begins",
         "engine_relevance": false
       },
-      "Metabolic_Slowdown_Percent": 0.15,
       "Exercise_Safety_Recommendation": {
         "type": "descriptive_note",
         "content": "Daily gentle walks and swimming; avoid repetitive impact",
@@ -1171,118 +1387,6 @@
         "content": "Therapeutic, assisted exercise; focus on comfort and mobility",
         "engine_relevance": false
       }
-    }
-  ],
-  "Ideal_Weight_Reference_Table": [
-    {
-      "min_age_weeks": 0,
-      "max_age_weeks": 2,
-      "age_label": "0-2 weeks",
-      "Male_Min_kg": 0.2,
-      "Male_Max_kg": 0.9,
-      "Female_Min_kg": 0.2,
-      "Female_Max_kg": 0.9,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_weeks": 2,
-      "max_age_weeks": 4,
-      "age_label": "2-4 weeks",
-      "Male_Min_kg": 0.9,
-      "Male_Max_kg": 2.5,
-      "Female_Min_kg": 0.8,
-      "Female_Max_kg": 2.7,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_weeks": 4,
-      "max_age_weeks": 8,
-      "age_label": "4-8 weeks",
-      "Male_Min_kg": 4.5,
-      "Male_Max_kg": 6.8,
-      "Female_Min_kg": 3.6,
-      "Female_Max_kg": 5.5,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 2,
-      "max_age_months": 3,
-      "age_label": "2-3 months",
-      "Male_Min_kg": 9.0,
-      "Male_Max_kg": 13.6,
-      "Female_Min_kg": 6.8,
-      "Female_Max_kg": 11.3,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 3,
-      "max_age_months": 4,
-      "age_label": "3-4 months",
-      "Male_Min_kg": 13.6,
-      "Male_Max_kg": 18.1,
-      "Female_Min_kg": 11.3,
-      "Female_Max_kg": 15.9,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 4,
-      "max_age_months": 5,
-      "age_label": "4-5 months",
-      "Male_Min_kg": 15.9,
-      "Male_Max_kg": 20.4,
-      "Female_Min_kg": 13.6,
-      "Female_Max_kg": 18.1,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 5,
-      "max_age_months": 6,
-      "age_label": "5-6 months",
-      "Male_Min_kg": 18.1,
-      "Male_Max_kg": 24.9,
-      "Female_Min_kg": 15.9,
-      "Female_Max_kg": 20.4,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 6,
-      "max_age_months": 8,
-      "age_label": "6-8 months",
-      "Male_Min_kg": 22.7,
-      "Male_Max_kg": 29.5,
-      "Female_Min_kg": 18.1,
-      "Female_Max_kg": 24.9,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 8,
-      "max_age_months": 10,
-      "age_label": "8-10 months",
-      "Male_Min_kg": 24.9,
-      "Male_Max_kg": 31.8,
-      "Female_Min_kg": 20.4,
-      "Female_Max_kg": 27.2,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 10,
-      "max_age_months": 12,
-      "age_label": "10-12 months",
-      "Male_Min_kg": 27.2,
-      "Male_Max_kg": 34.0,
-      "Female_Min_kg": 22.7,
-      "Female_Max_kg": 29.5,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
-    },
-    {
-      "min_age_months": 12,
-      "max_age_months": null,
-      "age_label": "12+ months",
-      "Male_Min_kg": 29.5,
-      "Male_Max_kg": 36.3,
-      "Female_Min_kg": 24.9,
-      "Female_Max_kg": 31.8,
-      "Mid_Weight_Calc_Logic": "Mid = (min + max) / 2 for each sex"
     }
   ],
   "Age_Wise_Diet": [
@@ -1488,7 +1592,7 @@
           "Engine_Intent": "high_fat_high_protein",
           "descriptive_note": {
             "type": "descriptive_note",
-            "content": "Dam’s milk; high fat, high protein",
+            "content": "Dam's milk; high fat, high protein",
             "engine_relevance": false
           }
         },
@@ -1711,13 +1815,14 @@
       "Curd rice + pumpkin slices",
       "Daliya + egg + paneer (controlled portions)"
     ],
-    "Hydration_Target_ml_per_kg_per_day": 55,
+    "Hydration_Target_ml_per_kg_per_day": 70,
     "Treat_Limit_Percent_Of_Daily_Calories": 0.1,
     "Activity_Adjustment_Percent": {
       "Low_Activity": -0.15,
       "Moderate_Activity": 0.0,
       "High_Activity": 0.15
-    }
+    },
+    "Hydration_Target_Note": "Updated to 70 ml/kg/day (NRC 2006 / PMC6305449). Advisory block aligned with Hydration_System standard."
   },
   "Senior_Stage_Nutrition_7Y_plus": {
     "Calorie_Reduction_Percent_vs_Adult": 0.1,
@@ -1914,103 +2019,134 @@
     "Delegates_To": "Weight_Condition_Adjustment_Engine"
   },
   "Symptom_Based_Nutrition_Logic": {
+    "_Clinical_Disclaimer": "No published guideline specifies exact calorie reduction percentages for these symptoms. Adjustments are conservative estimates based on CAVN, WSAVA, Merck Veterinary Manual principles. NOT substitutes for veterinary diagnosis.",
+    "_GI_Evidence_Note": "Current evidence (CAVN 2024; Today's Veterinary Nurse 2023; PMC7465157) recommends small frequent meals of highly digestible food during GI illness. The gut needs nutrients to recover — prolonged fasting or severe calorie cuts are NOT recommended.",
     "Fever": {
+      "_Evidence_Level": "HEURISTIC_ESTIMATE",
       "Calorie_Adjustment": -0.15,
+      "Calorie_Adjustment_Note": "Conservative 15% reduction for reduced metabolic demand. Redirect to vet immediately if >103F.",
       "Hydration_Rule": 1.25,
+      "Meal_Strategy": "Small frequent meals every 3-4 hours of highly digestible food; do not force feed",
       "Recommended_Foods": [
-        "Chicken broth",
-        "Curd rice",
-        "Boiled pumpkin",
-        "Moong dal khichdi"
-      ],
-      "Avoid_Foods": [
-        "Fried/oily foods",
-        "Heavy paneer daily"
-      ],
-      "When_To_See_Vet": "If temperature >103°F, refuses food/water, or fever >24h"
-    },
-    "Loose_Motion": {
-      "Calorie_Adjustment": -0.2,
-      "Hydration_Rule": 1.4,
-      "Recommended_Foods": [
-        "Pumpkin puree",
-        "Curd rice",
-        "Boiled rice water",
+        "Chicken broth (no salt, no onion)",
+        "Curd rice (room temp)",
+        "Boiled pumpkin mash",
         "Soft moong dal khichdi"
       ],
       "Avoid_Foods": [
-        "Meat",
-        "Milk (if lactose sensitive)",
-        "Greasy foods"
+        "Fried or oily foods",
+        "High-fat heavy meals",
+        "New unfamiliar foods"
       ],
-      "When_To_See_Vet": "If blood/mucus present, severe lethargy, or >24h duration"
+      "When_To_See_Vet": "IMMEDIATELY if temperature >103F (39.4C); refuses food AND water >12h; fever persists >24h; any concurrent vomiting, bloody stool, or collapse"
+    },
+    "Loose_Motion": {
+      "_Evidence_Level": "HEURISTIC_ESTIMATE — current evidence supports feeding, not calorie restriction",
+      "Calorie_Adjustment": -0.1,
+      "Calorie_Adjustment_Note": "Modest 10% reduction for volume management only. DO NOT severely restrict — gut needs nutrients. Feed small frequent meals. Source: Today's Veterinary Practice GI Nutrition; CAVN Guidelines.",
+      "Hydration_Rule": 1.4,
+      "Meal_Strategy": "3-4 small meals per day of highly digestible low-fat food. Gradual return to normal over 2-3 days once resolved.",
+      "Recommended_Foods": [
+        "Plain boiled white rice",
+        "Pumpkin puree (plain)",
+        "Curd rice (room temp)",
+        "Soft moong dal khichdi"
+      ],
+      "Avoid_Foods": [
+        "High-fat meats",
+        "Dairy if lactose sensitive",
+        "High-fiber vegetables during acute phase",
+        "Raw foods"
+      ],
+      "When_To_See_Vet": "Blood or mucus in stool; severe lethargy; >24h without improvement; puppy or senior dog — seek vet promptly"
     },
     "Vomiting": {
-      "Calorie_Adjustment": -0.5,
+      "_Evidence_Level": "PROTOCOL_BASED — previous -0.5 value was CLINICALLY INCORRECT and has been removed",
+      "_Clinical_Correction": "AAFCO, CAVN (2024), Today's Veterinary Nurse (2023): current evidence does NOT support 50% calorie restriction for vomiting. Gut needs nutrients; prolonged fasting delays recovery.",
+      "Calorie_Adjustment": -0.15,
+      "Calorie_Adjustment_Note": "Applied only during 4-12h post-fast reintroduction phase. For acute single vomiting: short 2-4h withhold only. For frequent vomiting >3x/hour: 24h vet-guided restriction may apply.",
+      "Acute_Protocol": {
+        "Step_1_0_to_4h": "Withhold food; small water sips only",
+        "Step_2_4_to_12h": "Offer 25% of normal meal as very small frequent portions of bland food IF no further vomiting",
+        "Step_3_12_to_24h": "Increase to 50-75% of normal volume if stable",
+        "Step_4_24h_plus": "Transition back to normal diet over 2-3 days",
+        "Puppy_Senior_Exception": "Do NOT fast puppies or senior dogs >12h. Consult vet immediately."
+      },
       "Hydration_Rule": 1.0,
+      "Hydration_Note": "Offer small frequent water sips; do not force. IV fluids for severe dehydration — vet only.",
       "Recommended_Foods": [
-        "Plain rice",
-        "Boiled chicken (small amounts)",
-        "Pumpkin mash"
+        "Plain boiled white rice (small portions)",
+        "Boiled chicken breast (no skin, no seasoning)",
+        "Plain pumpkin mash"
       ],
       "Avoid_Foods": [
-        "Fatty foods",
+        "High-fat foods",
         "Dairy",
-        "Bones",
-        "Human leftovers"
+        "Raw bones",
+        "Human seasoned leftovers",
+        "Large meal volumes"
       ],
-      "When_To_See_Vet": "Immediate vet if repeated vomiting, blood, or associated with collapse"
+      "When_To_See_Vet": "IMMEDIATELY: blood in vomit; repeated vomiting >3x/hour; signs of bloat; lethargy or collapse; puppy or senior dog; suspected foreign body"
     },
     "Lethargy": {
+      "_Evidence_Level": "HEURISTIC_ESTIMATE — lethargy is a symptom not a nutritional diagnosis",
       "Calorie_Adjustment": -0.1,
-      "Hydration_Rule": 1.25,
+      "Calorie_Adjustment_Note": "Reduced activity = reduced expenditure. 10% conservative reduction. Lethargy is non-specific — underlying cause must be investigated by vet.",
+      "Hydration_Rule": 1.1,
       "Recommended_Foods": [
-        "Chicken soup",
-        "Sweet potato mash",
-        "Rice & curd",
-        "Daliya"
+        "Warm easily digestible foods",
+        "Chicken broth (no salt)",
+        "Curd rice",
+        "Soft daliya"
       ],
       "Avoid_Foods": [
-        "Heavy fatty meats",
+        "Heavy fatty proteins",
         "New experimental foods"
       ],
-      "When_To_See_Vet": "If lethargy >72h or associated with other red-flag signs"
+      "When_To_See_Vet": "Lethargy >48h; concurrent fever/vomiting/diarrhea; sudden onset; senior dog — consult promptly"
     },
     "Skin_Allergy": {
+      "_Evidence_Level": "GUIDELINE_ALIGNED — WSAVA and ACVD elimination diet protocol",
       "Calorie_Adjustment": 0.0,
       "Hydration_Rule": 1.1,
+      "Diet_Approach": "Strict elimination diet trial minimum 8 weeks: single novel protein + novel carbohydrate. Gold standard per WSAVA and American College of Veterinary Dermatology.",
       "Recommended_Foods": [
-        "Omega-3 rich diets (fish-based)",
-        "Novel protein as advised by vet",
-        "Limited-ingredient home diets under supervision"
+        "Novel protein source selected by vet",
+        "Novel carbohydrate source",
+        "Hydrolyzed protein therapeutic diet if elimination trial not feasible"
       ],
       "Avoid_Foods": [
-        "Known trigger proteins",
-        "High-sugar treats",
-        "Colored/flavored commercial treats"
+        "All previously fed proteins during elimination trial",
+        "Multi-ingredient commercial treats",
+        "Flavored medications or chews"
       ],
-      "When_To_See_Vet": "If intense itching, hair loss, or skin wounds are present"
+      "When_To_See_Vet": "First signs of persistent itching, hair loss, skin lesions, hot spots, or recurrent ear infections. Allergy requires veterinary diagnosis."
     },
     "Joint_Pain": {
+      "_Evidence_Level": "GUIDELINE_ALIGNED — WSAVA and ACVIM weight management for OA",
+      "_Source": "Roush et al. JAVMA 2010 — EPA/DHA reduces OA inflammation; WSAVA/ACVIM OA guidelines",
       "Calorie_Adjustment": -0.05,
+      "Calorie_Adjustment_Note": "Modest 5% reduction to support gradual lean weight maintenance. WSAVA/ACVIM: even 6-9% BW loss significantly reduces OA clinical signs.",
       "Hydration_Rule": 1.1,
       "Recommended_Foods": [
-        "High-protein, controlled-calorie diets",
-        "Omega-3 enriched foods",
-        "Senior/joint-support formulas"
+        "Omega-3 enriched foods (EPA/DHA from fish)",
+        "Lean protein",
+        "Joint-support commercial formulas"
       ],
+      "Supplement_Note": "EPA/DHA 40-100 mg/kg/day has evidence for OA inflammation reduction (Roush et al., JAVMA 2010). Glucosamine/chondroitin — mixed evidence, discuss with vet.",
       "Avoid_Foods": [
-        "High-calorie snacks",
-        "Excess carbs promoting weight gain"
+        "High-calorie treats",
+        "Weight-promoting foods"
       ],
-      "When_To_See_Vet": "At first persistent lameness or reluctance to move/jump"
+      "When_To_See_Vet": "First persistent lameness, stiffness after rest, reluctance to climb or jump. OA requires radiographic diagnosis."
     }
   },
   "Seasonal_Adjustment": {
     "Summer": {
-      "Calorie_Shift_Percent_vs_Normal": 0.05,
+      "Calorie_Shift_Percent_vs_Normal": -0.05,
       "Hydration_Rule": 1.2,
-      "Food_Modification_Guidance": "Use more curd rice, lauki mash, light meals; avoid very heavy/fatty meals"
+      "Food_Modification_Guidance": "Use more curd rice, lauki mash, light meals; avoid very heavy/fatty meals",
+      "_Note": "Corrected to -0.05: summer heat reduces activity and appetite in dogs. Aligns with Master_Pipeline.Seasonal_Adjustment_Values.Summer."
     },
     "Winter": {
       "Calorie_Shift_Percent_vs_Normal": 0.1,
@@ -2022,73 +2158,15 @@
       "Rainy_Hygiene_Rule": "Keep bowls dry and clean; avoid stale wet food",
       "Hydration_Rule": 1.0,
       "Food_Modification_Guidance": "Prefer easily digestible foods like moong dal khichdi, pumpkin puree, curd rice"
-    }
+    },
+    "_Evidence_Disclaimer": "HEURISTIC_ESTIMATES — NOT a published clinical standard. Published research is primarily for outdoor/working dogs. Indoor companion dogs have minimal seasonal thermoregulatory calorie change. These are conservative approximations for Indian climate context."
   },
-  "Hydration_System": {
-    "Standard_ml_per_kg_per_day": 55,
-    "Fever_Override": 1.25,
-    "Diarrhea_Override": 1.4,
-    "Exercise_Override": 1.2,
-    "Vomiting_Override": 1.0,
-    "High_Activity_Override": 1.2,
-    "Override_Selection_Rule": "If multiple hydration triggers apply, select highest multiplier only",
-    "Max_Allowed_Multiplier": 1.5,
-    "Apply_After_Calorie_Adjustment": true
-  },
-  "Prohibited_Foods_List": [
-    {
-      "Food_Name": "Chocolate",
-      "Toxic_Reason": "Contains theobromine and caffeine causing cardiac, neurologic and GI toxicity"
-    },
-    {
-      "Food_Name": "Grapes_and_Raisins",
-      "Toxic_Reason": "Can cause acute kidney failure in dogs"
-    },
-    {
-      "Food_Name": "Onions_and_Garlic",
-      "Toxic_Reason": "Cause oxidative damage to red blood cells leading to anemia"
-    },
-    {
-      "Food_Name": "Xylitol_Containing_Gums_and_Candy",
-      "Toxic_Reason": "Triggers severe hypoglycemia and possible liver failure"
-    },
-    {
-      "Food_Name": "Alcohol",
-      "Toxic_Reason": "Depresses CNS and can cause metabolic acidosis"
-    },
-    {
-      "Food_Name": "Cooked_Bones",
-      "Toxic_Reason": "Splintering risk; can cause GI obstruction or perforation"
-    },
-    {
-      "Food_Name": "High_Fat_Scraps",
-      "Toxic_Reason": "Increase risk of pancreatitis and obesity"
-    }
-  ],
-  "Longevity_Obesity_Research_Data": {
-    "Calorie_Restriction_Percent": 0.25,
-    "Median_Lifespan_Control_Years": 11.2,
-    "Median_Lifespan_Restricted_Years": 13.0,
-    "Lifespan_Extension_Years": 1.8,
-    "Mortality_Risk_Per_kg_Overweight_at_10Y": 0.19,
-    "Obesity_Prevalence_Note": "Overweight condition in mid-life strongly associated with higher OA and earlier mortality",
-    "BCS_Greater_Than_5_Risk_Note": "BCS > 5 associated with higher OA prevalence and reduced healthy lifespan"
-  },
-  "Large_Breed_Calcium_Safety_Rule": {
-    "Calcium_g_per_1000_kcal_Safe_Range": [
-      3.0,
-      4.5
+  "Seasonal_Calorie_Control": {
+    "Authoritative_Source": "Seasonal_Adjustment",
+    "Disable_If_Using": [
+      "Diet_Plan_Seasonal"
     ],
-    "Percent_DM_Safe_Range": [
-      1.2,
-      1.8
-    ],
-    "Warning_Against_Supplementation": "Avoid additional calcium supplements when feeding a complete large-breed puppy diet; excess Ca during 0-6 months can cause DOD/OCD",
-    "Growth_Plate_Closure_Window": {
-      "High_Sensitivity_Phase": "3-6 months (Juvenile I–III)",
-      "Most_Long_Bones_Closed_By": "12 months",
-      "Late_Closing_Tibial_Physes": "18-21 months"
-    }
+    "Conflict_Rule": "Apply only one seasonal calorie modifier at a time"
   },
   "Diet_Plan_Seasonal": {
     "Engine_Role": "ADVISORY_REFERENCE_ONLY",
@@ -2207,6 +2285,96 @@
         "type": "unrestricted",
         "engine_relevance": false
       }
+    }
+  },
+  "Hydration_System": {
+    "_Clinical_Source": "NRC 2006; Zanghi et al. Front Vet Sci (2018) PMC6305449 — mean 60-82 ml/kg/day on dry food",
+    "Standard_ml_per_kg_per_day": 70,
+    "Standard_ml_per_kg_Note": "NRC 2006 and peer-reviewed studies report 60-82 ml/kg/day (mean ~71) for healthy dogs on dry food. 70 used as conservative midpoint.",
+    "Fever_Override": 1.25,
+    "Diarrhea_Override": 1.4,
+    "Exercise_Override": 1.2,
+    "Vomiting_Override": 1.0,
+    "High_Activity_Override": 1.2,
+    "Override_Selection_Rule": "If multiple hydration triggers apply, select highest multiplier only. No compounding.",
+    "Max_Allowed_Multiplier": 1.5,
+    "Apply_After_Calorie_Adjustment": true,
+    "_Multiplier_Disclaimer": "Specific multiplier values are clinically conservative estimates. No single published protocol specifies exact multipliers. Always ensure fresh water access; consult vet for severe dehydration."
+  },
+  "Hydration_Stack_Control": {
+    "_Clinical_Source": "NRC 2006; Zanghi et al. Front Vet Sci (2018) PMC6305449",
+    "Base_ml_per_kg": 70,
+    "Source_Priority_Order": [
+      "Symptom",
+      "Activity",
+      "Season"
+    ],
+    "Rule": "Apply only the highest single multiplier — never compound",
+    "Do_Not_Multiply_Multiple_Overrides": true,
+    "Max_Allowed_Multiplier": 1.5,
+    "Final_Formula": "weight_kg * Base_ml_per_kg * selected_multiplier",
+    "highest_override_wins": true,
+    "max_multiplier_cap": 1.5,
+    "prevent_compound_multiplication": true
+  },
+  "Prohibited_Foods_List": [
+    {
+      "Food_Name": "Chocolate",
+      "Toxic_Reason": "Contains theobromine and caffeine causing cardiac, neurologic and GI toxicity"
+    },
+    {
+      "Food_Name": "Grapes_and_Raisins",
+      "Toxic_Reason": "Can cause acute kidney failure in dogs"
+    },
+    {
+      "Food_Name": "Onions_and_Garlic",
+      "Toxic_Reason": "Cause oxidative damage to red blood cells leading to anemia"
+    },
+    {
+      "Food_Name": "Xylitol_Containing_Gums_and_Candy",
+      "Toxic_Reason": "Triggers severe hypoglycemia and possible liver failure"
+    },
+    {
+      "Food_Name": "Alcohol",
+      "Toxic_Reason": "Depresses CNS and can cause metabolic acidosis"
+    },
+    {
+      "Food_Name": "Cooked_Bones",
+      "Toxic_Reason": "Splintering risk; can cause GI obstruction or perforation"
+    },
+    {
+      "Food_Name": "High_Fat_Scraps",
+      "Toxic_Reason": "Increase risk of pancreatitis and obesity"
+    },
+    {
+      "Food_Name": "Macadamia_Nuts",
+      "Toxic_Reason": "Causes weakness, hyperthermia, vomiting, tremors in dogs. Exact mechanism unknown.",
+      "Source": "ASPCA Animal Poison Control Center"
+    }
+  ],
+  "Longevity_Obesity_Research_Data": {
+    "Calorie_Restriction_Percent": 0.25,
+    "Median_Lifespan_Control_Years": 11.2,
+    "Median_Lifespan_Restricted_Years": 13.0,
+    "Lifespan_Extension_Years": 1.8,
+    "Mortality_Risk_Per_kg_Overweight_at_10Y": 0.19,
+    "Obesity_Prevalence_Note": "Overweight condition in mid-life strongly associated with higher OA and earlier mortality",
+    "BCS_Greater_Than_5_Risk_Note": "BCS > 5 associated with higher OA prevalence and reduced healthy lifespan"
+  },
+  "Large_Breed_Calcium_Safety_Rule": {
+    "Calcium_g_per_1000_kcal_Safe_Range": [
+      3.0,
+      4.5
+    ],
+    "Percent_DM_Safe_Range": [
+      1.2,
+      1.8
+    ],
+    "Warning_Against_Supplementation": "Avoid additional calcium supplements when feeding a complete large-breed puppy diet; excess Ca during 0-6 months can cause DOD/OCD",
+    "Growth_Plate_Closure_Window": {
+      "High_Sensitivity_Phase": "3-6 months (Juvenile I–III)",
+      "Most_Long_Bones_Closed_By": "12 months",
+      "Late_Closing_Tibial_Physes": "18-21 months"
     }
   },
   "BCS_Automatic_Detection_Logic": {
@@ -2384,8 +2552,9 @@
           "weekly_percent": 1.2
         },
         "4": {
-          "mode": "Weight_Gain",
-          "weekly_percent": 1.0
+          "mode": "Maintenance",
+          "weekly_percent": 0,
+          "_Note": "BCS 4 = Lean but within WSAVA acceptable range (4-5). No forced weight gain for adult dogs. Monitor only. Source: WSAVA BCS Guidelines; Laflamme 1997."
         },
         "5": {
           "mode": "Maintenance",
@@ -2410,53 +2579,24 @@
       },
       "Safety_Limits": {
         "Max_Loss_Percent_Per_Week": 2.0,
-        "Max_Gain_Percent_Per_Week": 1.5
+        "Max_Gain_Percent_Per_Week": 1.5,
+        "_Source": "AAHA 2021 + Brooks 2014 — 1-2% per week is published safe weight loss rate for dogs. BCS 9 at 2.0%/week is the upper limit and should be vet-supervised."
       },
       "Rounding": {
         "Weight_Round_To_Decimal": 2,
         "Weeks_Round_Method": "ceil"
-      }
-    }
-  },
-  "Age_Resolution_Control": {
-    "Priority_Order": [
-      "Lifecycle_Growth_Model_20_Stages",
-      "Ideal_Weight_Reference_Table",
-      "Weight_By_Age",
-      "Age_Wise_Diet",
-      "Puppy_Month_By_Month_Nutrition_0_12M"
-    ],
-    "Matching_Rule": "Match smallest valid numeric age window first",
-    "Unit_Normalization": "Convert weeks and years into months before comparison",
-    "Unit_Conversion_Formulas": {
-      "Weeks_To_Months": "weeks / 4.345",
-      "Years_To_Months": "years * 12"
+      },
+      "_Clinical_Source": "AAHA 2021 Nutrition and Weight Management Guidelines; Brooks et al. 2014 AAHA Weight Management Guidelines. Published safe rate: 1-2%/week for dogs."
     },
-    "Conflict_Handling": "If overlapping, choose most specific (narrowest range)"
-  },
-  "Stage_Resolver_Engine": {
-    "Input": [
-      "age_months",
-      "age_years"
-    ],
-    "Resolution_Order": [
-      "Lifecycle_Growth_Model_20_Stages",
-      "Weight_By_Age",
-      "Ideal_Weight_Reference_Table",
-      "Age_Wise_Diet"
-    ],
-    "Matching_Rule": "Match numeric min/max boundaries; prioritize most specific age bracket",
-    "Output": [
-      "Resolved_Stage_Name",
-      "Resolved_Weight_Bracket",
-      "Resolved_Diet_Block"
-    ]
+    "_Methodology_Disclaimer": "COMPUTATIONAL APPROXIMATION — not a published clinical standard. WSAVA BCS is visual/palpation-based (Laflamme DP, 1997). Weight deviation is a proxy for automated digital screening only. Final BCS must be verified by a veterinarian.",
+    "_Fusion_Model_Disclaimer": "The 0.6/0.4 weighted fusion model is a novel computational approach developed for this engine. It is NOT a validated clinical scoring method. For clinical decisions, use WSAVA palpation-based BCS."
   },
   "Master_Calorie_Adjustment_Pipeline": {
     "Execution_Order": [
       "Base_Calorie_Reference",
       "Activity_Based_Nutrition_Adjustment",
       "Weight_Condition_Adjustment_Engine",
+      "Goal_Override_Controller",
       "Symptom_Based_Nutrition_Logic",
       "Seasonal_Adjustment",
       "Senior_Metabolic_Slowdown_Adjustment"
@@ -2479,7 +2619,7 @@
     "Max_Safe_Calorie_Multiplier": 2.5,
     "Ceiling_Enforced": true,
     "Senior_Adjustment_Source": "Lifecycle_Growth_Model_20_Stages",
-    "Senior_Adjustment_Rule": "If age ≥ 7 years, apply stage-defined slowdown percent as negative adjustment",
+    "Senior_Adjustment_Rule": "If age >= 7 years, apply stage-defined slowdown percent as negative adjustment",
     "Global_Adjustment_Cap": {
       "Max_Total_Increase": 0.35,
       "Max_Total_Decrease": -0.35,
@@ -2499,23 +2639,13 @@
       "Apply_Only_If_Age_Matches": true,
       "Do_Not_Stack_Twice": true
     },
-    "Global_Adjustment_Controller": {
-      "Engine_Role": "Reference_Only_Disabled_For_MVP",
-      "Active": false
-    },
     "Final_Output_Block": {
       "Output_Field": "Final_kcal_per_day",
       "Single_Authoritative_Output": true,
       "No_Static_Block_Override": true,
       "Deterministic": true
     },
-    "BCS_Adjustment": {
-      "Underweight": 0.15,
-      "Ideal": 0.0,
-      "Overweight": -0.1,
-      "Obese": -0.2
-    },
-    "Seasonal_Adjustment": {
+    "Seasonal_Adjustment_Values": {
       "Summer": -0.05,
       "Winter": 0.1,
       "Rainy": 0.0,
@@ -2524,7 +2654,7 @@
       "Cold": 0.1,
       "Hot": -0.1
     },
-    "Symptom_Adjustment": {
+    "Symptom_Adjustment_Values": {
       "Loose_Motion": -0.1,
       "Vomiting": -0.15,
       "Constipation": 0.05
@@ -2534,169 +2664,21 @@
       "Max_kcal": "RER * 2.5",
       "Global_Max_Positive": 0.35,
       "Global_Max_Negative": -0.35
-    }
+    },
+    "BCS_Adjustment_Authority": "Weight_Condition_Adjustment_Engine (Engine_Status: MASTER) — do not apply separate BCS adjustment in pipeline. Calorie delta from Weight_Condition_Adjustment_Engine is the single authoritative BCS-based calorie modifier."
   },
-  "Seasonal_Calorie_Control": {
-    "Authoritative_Source": "Seasonal_Adjustment",
-    "Disable_If_Using": [
-      "Diet_Plan_Seasonal"
-    ],
-    "Conflict_Rule": "Apply only one seasonal calorie modifier at a time"
+  "Global_Adjustment_Cap": {
+    "Max_Positive_Adjustment": 0.35,
+    "Max_Negative_Adjustment": -0.35,
+    "Apply_After_All_Adjustments": true,
+    "Protect_Minimum_Calorie_Floor": true
   },
-  "Engine_Metadata": {
-    "Engine_Version": "1.1.0",
-    "Architecture_Type": "Deterministic Rule-Based Veterinary Nutrition Engine",
-    "Calorie_Model": "RER_based_with_multi_layer_adjustments",
-    "BCS_Model": "Weight_Deviation_plus_Questionnaire_Fusion",
-    "Hydration_Model": "Base_ml_per_kg_with_override_multipliers",
-    "Validation_Mode": "Strict"
-  },
-  "Execution_Order_Index": {
-    "Stage_Resolution": 1,
-    "Ideal_Weight_Calculation": 2,
-    "BCS_Detection": 3,
-    "Base_Calorie_Calculation": 4,
-    "Activity_Adjustment": 5,
-    "Weight_Adjustment": 6,
-    "Symptom_Adjustment": 7,
-    "Seasonal_Adjustment": 8,
-    "Hydration_Adjustment": 9
-  },
-  "Calorie_Stack_Simulation_Tests": {
-    "Test_Cases": [
-      {
-        "Scenario": "Obese_Senior_Summer_Low_Activity",
-        "Inputs": {
-          "Age_Years": 9,
-          "BCS_Category": "Obese",
-          "Season": "Summer",
-          "Activity_Level": "Low_Activity"
-        },
-        "Expected_Execution_Order": [
-          "Base_Calorie",
-          "Activity_Adjustment",
-          "Weight_Adjustment",
-          "Seasonal_Adjustment",
-          "Symptom_Adjustment_if_any"
-        ],
-        "Stacking_Rule": "Additive percentage adjustments applied sequentially",
-        "Conflict_Check": "Ensure no double seasonal application"
-      },
-      {
-        "Scenario": "High_Activity_Young_Adult_Winter",
-        "Inputs": {
-          "Age_Years": 3,
-          "BCS_Category": "Ideal",
-          "Season": "Winter",
-          "Activity_Level": "High_Activity"
-        },
-        "Validation_Target": "Final calories should reflect +activity and +winter shift only"
-      },
-      {
-        "Scenario": "Loose_Motion_Puppy_4_Months",
-        "Inputs": {
-          "Age_Months": 4,
-          "Symptom": "Loose_Motion"
-        },
-        "Validation_Target": "Hydration override applied; calorie reduction applied once"
-      }
-    ]
-  },
-  "Hydration_Stack_Control": {
-    "Base_ml_per_kg": 55,
-    "Source_Priority_Order": [
-      "Symptom",
-      "Activity",
-      "Season"
-    ],
-    "Rule": "Apply only the highest single multiplier",
-    "Do_Not_Multiply_Multiple_Overrides": true,
-    "Max_Allowed_Multiplier": 1.5,
-    "Final_Formula": "weight_kg * Base_ml_per_kg * selected_multiplier",
-    "highest_override_wins": true,
-    "max_multiplier_cap": 1.5,
-    "prevent_compound_multiplication": true
-  },
-  "Engine_Integrity_Check": {
-    "All_Percentages_Decimal_0_1": true,
-    "No_Duplicate_Adjustment_Layers": true,
-    "All_Referenced_Engines_Exist": true,
-    "Execution_Order_Defined": true,
-    "Deterministic_Output": true
-  },
-  "Deterministic_Validation_Layer": {
-    "All_Percentages_Decimal_0_to_1": true,
-    "Macronutrient_Sum_Must_Equal": 1.0,
-    "No_Duplicate_Seasonal_Modifiers": true,
-    "BCS_Ranges_Continuous": true,
-    "Hydration_Max_Multiplier": 1.5,
-    "Global_Adjustment_Cap_Enforced": true,
-    "Minimum_Calorie_Floor_Enforced": true,
-    "Execution_Order_Indexed": true,
-    "JSON_Structure_Valid": true
-  },
-  "Input_Validation": {
-    "Required_Inputs": [
-      "weight_kg",
-      "age_months_or_years",
-      "activity_level"
-    ],
-    "Weight_Range_kg": [
-      0.2,
-      60
-    ],
-    "Age_Range_Months": [
-      0,
-      180
-    ],
-    "Allowed_Activity_Levels": [
-      "Low_Activity",
-      "Moderate_Activity",
-      "High_Activity",
-      "Working_Dog"
-    ],
-    "Allowed_BCS_Categories": [
-      "Underweight",
-      "Ideal",
-      "Overweight",
-      "Obese"
-    ],
-    "Allowed_Seasons": [
-      "Summer",
-      "Winter",
-      "Rainy",
-      "Normal",
-      "Humid",
-      "Cold",
-      "Hot"
-    ],
-    "Weight_Must_Be_Positive": true,
-    "BCS_Must_Be_1_to_9": true,
-    "Age_Must_Be_Non_Negative": true,
-    "Age_Units_Accepted": [
-      "weeks",
-      "months",
-      "years"
-    ],
-    "Reject_Null_Core_Inputs": true,
-    "Optional_Flags": [
-      "renal_support_required"
-    ]
-  },
-  "Engine_Integrity_Validation": {
-    "No_Duplicate_Keys": true,
-    "All_Percentages_Decimal_0_to_1": true,
-    "Clamp_Applied_Before_Multiplication": true,
-    "Single_Seasonal_Authority": true,
-    "Hydration_Applied_Once": true,
-    "Deterministic_Output": true
-  },
-  "Energy_System_Integrity_Check": {
-    "RER_Formula_Defined": true,
-    "MER_Source_Unique": true,
-    "MER_Applied_Only_Once": true,
-    "All_Adjustments_Additive_Not_Multiplicative": true,
-    "Clamp_Applied_Before_Final_Multiplication": true
+  "Absolute_Calorie_Safety_Limits": {
+    "Execution_Position": "After Global_Adjustment_Cap",
+    "Minimum_kcal": "RER * 1.0",
+    "Maximum_kcal": "RER * 2.5",
+    "Enforcement": "Clamp Final_kcal_per_day to [Minimum_kcal, Maximum_kcal]",
+    "Reference": "Scientific_Reference_Sources.NRC_Reference (Safe Energy Intake Ranges to Prevent Under/Overfeeding)"
   },
   "Goal_Override_Priority_Engine": {
     "Priority_Order": [
@@ -2767,32 +2749,6 @@
       "Never_Allow_Extreme_Deficit_or_Surplus": true
     }
   },
-  "Execution_Order_Control": {
-    "Engine_Role": "Reference_Only_Disabled_For_MVP",
-    "Active": false
-  },
-  "Global_Adjustment_Cap": {
-    "Max_Positive_Adjustment": 0.35,
-    "Max_Negative_Adjustment": -0.35,
-    "Apply_After_All_Adjustments": true,
-    "Protect_Minimum_Calorie_Floor": true
-  },
-  "Decimal_System_Enforcement": {
-    "All_Adjustments_Use_Decimals_0_to_1": true,
-    "No_Mixed_Percent_Notation": true,
-    "Deviation_Output_Format": "decimal_only"
-  },
-  "Engine_Determinism_Check": {
-    "No_Randomness": true,
-    "Same_Input_Same_Output": true,
-    "Single_Final_Calorie_Value": true,
-    "Hydration_Single_Output": true,
-    "BCS_Final_Single_Category": true
-  },
-  "Global_Adjustment_Controller": {
-    "Engine_Role": "Reference_Only_Disabled_For_MVP",
-    "Active": false
-  },
   "Goal_Override_Controller": {
     "Execution_Position": "After_Weight_Condition_Adjustment_Before_Symptom_Adjustment",
     "Override_Strategy": "Controlled_Modifier_Layer",
@@ -2837,10 +2793,6 @@
       }
     }
   },
-  "Goal_Priority_Execution_Rules": {
-    "Engine_Role": "Reference_Only_Disabled_For_MVP",
-    "Active": false
-  },
   "Goal_Safety_Guardrails": {
     "Max_Total_Adjustment_Cap": 0.3,
     "Prevent_Excessive_Deficit_Below_RER": true,
@@ -2851,30 +2803,39 @@
       5
     ]
   },
+  "Decimal_System_Enforcement": {
+    "All_Adjustments_Use_Decimals_0_to_1": true,
+    "No_Mixed_Percent_Notation": true,
+    "Deviation_Output_Format": "decimal_only"
+  },
   "Macronutrient_Ratio_Profiles": {
     "Maintenance": {
       "Protein": 0.3,
       "Fat": 0.18,
       "Carbs": 0.52,
-      "Fiber": 0.04
+      "Fiber": 0.04,
+      "_Note": "Fiber is volumetric only — excluded from energy fraction per Macro_Conversion_Engine. P+F+C = 1.0 exactly."
     },
     "Muscle_Build": {
-      "Protein": 0.32,
+      "Protein": 0.35,
       "Fat": 0.2,
-      "Carbs": 0.48,
-      "Fiber": 0.04
+      "Carbs": 0.45,
+      "Fiber": 0.04,
+      "_Note": "Protein elevated for muscle accretion. P+F+C = 1.0."
     },
     "Fat_Loss_Priority": {
-      "Protein": 0.38,
+      "Protein": 0.4,
       "Fat": 0.15,
-      "Carbs": 0.47,
-      "Fiber": 0.06
+      "Carbs": 0.45,
+      "Fiber": 0.06,
+      "_Note": "High protein to protect LBM during deficit. P+F+C = 1.0."
     },
     "Weight_Gain_Priority": {
       "Protein": 0.28,
       "Fat": 0.22,
       "Carbs": 0.5,
-      "Fiber": 0.04
+      "Fiber": 0.04,
+      "_Note": "Moderate protein, higher fat+carb for calorie density. P+F+C = 1.0."
     },
     "Nutrient_Minimum_Standards": {
       "Puppy": {
@@ -2909,51 +2870,6 @@
       }
     }
   },
-  "Compliance_Adaptive_Control": {
-    "Weekly_Compliance_Thresholds": {
-      "good": [
-        0.85,
-        1
-      ],
-      "partial": [
-        0.7,
-        0.849
-      ],
-      "low": [
-        0,
-        0.699
-      ]
-    },
-    "Action_Rules": {
-      "low": "Simplify next cycle: reduce number of different ingredients, keep same calorie target",
-      "partial": "Keep current complexity, remind accurate weighing",
-      "good": "Maintain or slightly increase variety if user requests"
-    },
-    "Weight_Change_Rules": {
-      "max_safe_weekly_pct": 0.02,
-      "if_exceeds": "Adjust final_kcal ±5% toward ideal direction (respect Global_Adjustment_Cap)",
-      "plateau_2_weeks": "Adjust ±5% (direction depends on goal)",
-      "always_respect_floor": "RER × 1.0"
-    },
-    "Rollover_Trigger": "After day 7 → request new weight → recalculate BCS → regenerate cycle"
-  },
-  "Macronutrient_Safety_Validation": {
-    "Enforced_Rules": [
-      "final_protein_pct_DM ≥ lifecycle minimum (AAFCO/NRC aligned)",
-      "final_fat_pct_DM ≥ lifecycle minimum",
-      "during_growth: calcium_g_per_1000_kcal ∈ [3.0, 4.5]",
-      "during_growth: Ca_P_ratio ∈ [1.1, 1.4]",
-      "total_macro_energy_fraction_sum ≈ 1.0 (±0.02)",
-      "highest_hydration_multiplier_only",
-      "no_duplicate_seasonal_adjustment"
-    ]
-  },
-  "Scientific_Reference_Sources": {
-    "AAFCO_Version": "AAFCO 2023 Official Publication - Dog Nutrient Profiles for Growth and Reproduction (All Life Stages except Lactation) and Adult Maintenance",
-    "NRC_Reference": "National Research Council (2006) Nutrient Requirements of Dogs and Cats, National Academies Press",
-    "Alignment_Statement_1": "All lifecycle minimums (protein, fat) align with AAFCO official large-breed growth and maintenance standards",
-    "Alignment_Statement_2": "Calcium safety values are NRC-aligned for large-breed puppies (3.0–4.5 g Ca per 1000 kcal ME during growth phases; Ca:P ratio 1.1:1 to 1.4:1)"
-  },
   "Macro_Conversion_Engine": {
     "Validation_Rule": "Reject if Protein + Fat + Carbs != 1.0 (exact match required)",
     "Execution_Position": "After Master_Calorie_Adjustment_Pipeline, Before Weekly_Meal_Cycle_System.Allocation_Priority",
@@ -2976,8 +2892,8 @@
   "Mineral_Computation_Engine": {
     "Execution_Position": "After Weekly_Meal_Cycle_System.Allocation_Priority, Before Macronutrient_Safety_Validation",
     "Formulas": {
-      "Total_Calcium_g": "Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].calcium_g / 100 for all ingredients)",
-      "Total_Phosphorus_g": "Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].phosphorus_g / 100 for all ingredients)",
+      "Total_Calcium_g": "Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].calcium_g_per_100g / 100 for all ingredients)",
+      "Total_Phosphorus_g": "Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].phosphorus_g_per_100g / 100 for all ingredients)",
       "Calcium_per_1000_kcal": "Total_Calcium_g * 1000 / Final_kcal_per_day",
       "Ca_to_P_ratio": "Total_Calcium_g / Total_Phosphorus_g"
     },
@@ -2987,126 +2903,53 @@
     },
     "Reference": "Scientific_Reference_Sources.NRC_Reference (Calcium and Phosphorus Requirements for Large-Breed Growth)"
   },
-  "Dry_Matter_Validation_Engine": {
-    "Execution_Position": "After Mineral_Computation_Engine",
-    "Formulas": {
-      "Dry_Matter_Percent": "100 - Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].moisture_g / 100 for all ingredients) / total_grams * 100",
-      "Protein_DM_percent": "(Total_Protein_g / (total_grams * Dry_Matter_Percent / 100)) * 100",
-      "Fat_DM_percent": "(Total_Fat_g / (total_grams * Dry_Matter_Percent / 100)) * 100"
-    },
-    "Validation_Rules": {
-      "Growth": "Reject if Protein_DM_percent < 22.5 or Fat_DM_percent < 8.5",
-      "Adult": "Reject if Protein_DM_percent < 18.0 or Fat_DM_percent < 5.5",
-      "Lifecycle_Detection": "Use Lifecycle_Growth_Model_20_Stages to determine Growth or Adult"
-    },
-    "Reference": "Scientific_Reference_Sources.AAFCO_Version (Dry Matter Basis Nutrient Minimums)"
-  },
-  "Persistence_Model_Schema": {
-    "User_Profile": {
-      "fields": {
-        "user_id": "unique_identifier",
-        "subscription_level": "string",
-        "location": "string"
-      }
-    },
-    "Pet_Profile": {
-      "fields": {
-        "pet_id": "unique_identifier",
-        "breed": "string",
-        "age_months": "integer",
-        "weight_kg_history": "array of {date: string, weight: number}",
-        "bcs_category_history": "array of {date: string, bcs: string}",
-        "activity_level": "string",
-        "goal": "string",
-        "symptoms": "array of string"
-      }
-    },
-    "Weekly_Plan": {
-      "fields": {
-        "week_id": "unique_identifier",
-        "pet_id": "reference",
-        "week_number": "integer",
-        "calorie_target_daily": "number",
-        "macro_profile": "object {protein: number, fat: number, carbs: number, fiber: number}",
-        "meal_cycle": "array of daily plans {day: integer, meals: array of {kcal: number, ingredients: array of {name: string, grams: number}}}"
-      }
-    },
-    "Daily_Log": {
-      "fields": {
-        "log_id": "unique_identifier",
-        "week_id": "reference",
-        "day_number": "integer",
-        "status": "string (completed/partial/skipped)",
-        "actual_intake_kcal": "number optional",
-        "notes": "string optional"
-      }
-    },
-    "Compliance_Percent_Calc": "Sum(Daily_Log.status == 'completed' ? 1 : status == 'partial' ? 0.5 : 0) / 7 * 100"
-  },
-  "Compliance_Based_Simplification_Logic": {
-    "Execution_Position": "After Compliance_Adaptive_Control.Action_Rules, Before Weekly_Meal_Cycle_System",
-    "Rules": {
-      "If_Compliance_Less_Than_0.7": {
-        "Max_Ingredients_Per_Meal": 3,
-        "Lock_Protein_Source": true,
-        "Disable_Carb_Rotation": true,
-        "Calorie_Target_Change": 0.0
-      },
-      "If_Compliance_0.7_to_0.85": "Maintain current structure",
-      "If_Compliance_Greater_Than_0.85": "Allow deterministic rotation from Ingredient_Substitution_Map (no randomness)"
-    },
-    "Rotation_Rule": "Cycle through substitution lists deterministically (e.g., index = week_number % list_length)"
-  },
-  "Absolute_Calorie_Safety_Limits": {
-    "Execution_Position": "After Global_Adjustment_Cap",
-    "Minimum_kcal": "RER * 1.0",
-    "Maximum_kcal": "RER * 2.5",
-    "Enforcement": "Clamp Final_kcal_per_day to [Minimum_kcal, Maximum_kcal]",
-    "Reference": "Scientific_Reference_Sources.NRC_Reference (Safe Energy Intake Ranges to Prevent Under/Overfeeding)"
-  },
-  "Plateau_Detection_Logic": {
-    "Execution_Position": "After Compliance_Adaptive_Control.Weight_Change_Rules",
-    "Formula": "Weight_Change_Pct = (Current_Weight_kg - Previous_Weight_kg) / Previous_Weight_kg",
-    "Detection_Rule": "If abs(Weight_Change_Pct) < 0.005 for 2 consecutive weeks, plateau detected",
-    "Adjustment_Rule": {
-      "If_Plateau": "Adjust Final_kcal_per_day by ±0.05 (positive if goal is gain/underweight, negative if loss/overweight)",
-      "Respect_Constraints": [
-        "Global_Adjustment_Cap",
-        "Absolute_Calorie_Safety_Limits",
-        "Minimum_Safe_Calorie_Floor"
-      ]
-    },
-    "Reference": "Scientific_Reference_Sources.AAFCO_Version (Guidelines for Adaptive Feeding in Weight Management)"
-  },
   "Calcium_Supplementation_Module": {
     "Execution_Position": "After Weekly_Meal_Cycle_System.Allocation_Priority, Before Mineral_Computation_Engine",
+    "Targets": {
+      "calcium_per_1000kcal_min": 2.5,
+      "calcium_per_1000kcal_optimal": 3.2,
+      "calcium_per_1000kcal_max": 4.5,
+      "ca_to_p_ratio_min": 1.1,
+      "ca_to_p_ratio_max": 1.4
+    },
     "Sources": [
       {
         "name": "Calcium_Carbonate_Food_Grade",
         "calcium_g_per_gram": 0.4,
         "phosphorus_g_per_gram": 0,
-        "max_safe_gram_per_kg_bodyweight": 0.05,
+        "bioavailability": 0.9,
+        "max_safe_gram_per_kg_bodyweight": 0.15,
         "lifecycle_allowed": [
-          "growth"
-        ]
+          "growth",
+          "adult",
+          "senior"
+        ],
+        "priority": 1
       },
       {
         "name": "Eggshell_Powder",
         "calcium_g_per_gram": 0.38,
         "phosphorus_g_per_gram": 0.002,
-        "max_safe_gram_per_kg_bodyweight": 0.05,
+        "bioavailability": 0.85,
+        "max_safe_gram_per_kg_bodyweight": 0.08,
         "lifecycle_allowed": [
-          "growth"
-        ]
+          "growth",
+          "adult",
+          "senior"
+        ],
+        "priority": 2
       },
       {
         "name": "Bone_Meal_Measured",
         "calcium_g_per_gram": 0.25,
         "phosphorus_g_per_gram": 0.125,
-        "max_safe_gram_per_kg_bodyweight": 0.03,
+        "bioavailability": 0.75,
+        "max_safe_gram_per_kg_bodyweight": 0.04,
         "lifecycle_allowed": [
           "growth"
-        ]
+        ],
+        "priority": 3,
+        "note": "Use only in growth stage due to phosphorus load"
       }
     ],
     "Auto_Deficit_Detection_Formula": "Calcium_Deficit_g = max(0, (Nutrient_Standards.Growth_Large_Breed.Calcium_g_per_1000_kcal_Range[0] * Final_kcal_per_day / 1000) - Current_Total_Calcium_g)",
@@ -3164,6 +3007,93 @@
     },
     "Reference": "Scientific_Reference_Sources.NRC_Reference (Renal-Support Phosphorus Recommendations)"
   },
+  "Dry_Matter_Validation_Engine": {
+    "Execution_Position": "After Mineral_Computation_Engine",
+    "Formulas": {
+      "Dry_Matter_Percent": "100 - Sum(ingredient_gram * Food_Composition_Database.Ingredients[ingredient].moisture_g / 100 for all ingredients) / total_grams * 100",
+      "Protein_DM_percent": "(Total_Protein_g / (total_grams * Dry_Matter_Percent / 100)) * 100",
+      "Fat_DM_percent": "(Total_Fat_g / (total_grams * Dry_Matter_Percent / 100)) * 100"
+    },
+    "Validation_Rules": {
+      "Growth": "Reject if Protein_DM_percent < 22.5 or Fat_DM_percent < 8.5",
+      "Adult": "Reject if Protein_DM_percent < 18.0 or Fat_DM_percent < 5.5",
+      "Lifecycle_Detection": "Use Lifecycle_Growth_Model_20_Stages to determine Growth or Adult"
+    },
+    "Reference": "Scientific_Reference_Sources.AAFCO_Version (Dry Matter Basis Nutrient Minimums)"
+  },
+  "Macronutrient_Safety_Validation": {
+    "Enforced_Rules": [
+      "final_protein_pct_DM >= lifecycle minimum (AAFCO/NRC aligned)",
+      "final_fat_pct_DM >= lifecycle minimum",
+      "during_growth: calcium_g_per_1000_kcal in [3.0, 4.5]",
+      "during_growth: Ca_P_ratio in [1.1, 1.4]",
+      "total_macro_energy_fraction_sum ~= 1.0 (+-0.02)",
+      "highest_hydration_multiplier_only",
+      "no_duplicate_seasonal_adjustment"
+    ]
+  },
+  "Scientific_Reference_Sources": {
+    "AAFCO_Version": "AAFCO 2023 Official Publication - Dog Nutrient Profiles for Growth and Reproduction (All Life Stages except Lactation) and Adult Maintenance",
+    "NRC_Reference": "National Research Council (2006) Nutrient Requirements of Dogs and Cats, National Academies Press",
+    "Alignment_Statement_1": "All lifecycle minimums (protein, fat) align with AAFCO official large-breed growth and maintenance standards",
+    "Alignment_Statement_2": "Calcium safety values are NRC-aligned for large-breed puppies (3.0-4.5 g Ca per 1000 kcal ME during growth phases; Ca:P ratio 1.1:1 to 1.4:1)"
+  },
+  "Compliance_Adaptive_Control": {
+    "Weekly_Compliance_Thresholds": {
+      "good": [
+        0.85,
+        1
+      ],
+      "partial": [
+        0.7,
+        0.849
+      ],
+      "low": [
+        0,
+        0.699
+      ]
+    },
+    "Action_Rules": {
+      "low": "Simplify next cycle: reduce number of different ingredients, keep same calorie target",
+      "partial": "Keep current complexity, remind accurate weighing",
+      "good": "Maintain or slightly increase variety if user requests"
+    },
+    "Weight_Change_Rules": {
+      "max_safe_weekly_pct": 0.02,
+      "if_exceeds": "Adjust final_kcal +-5% toward ideal direction (respect Global_Adjustment_Cap)",
+      "plateau_2_weeks": "Adjust +-5% (direction depends on goal)",
+      "always_respect_floor": "RER x 1.0"
+    },
+    "Rollover_Trigger": "After day 7 -> request new weight -> recalculate BCS -> regenerate cycle"
+  },
+  "Compliance_Based_Simplification_Logic": {
+    "Execution_Position": "After Compliance_Adaptive_Control.Action_Rules, Before Weekly_Meal_Cycle_System",
+    "Rules": {
+      "If_Compliance_Less_Than_0.7": {
+        "Max_Ingredients_Per_Meal": 3,
+        "Lock_Protein_Source": true,
+        "Disable_Carb_Rotation": true,
+        "Calorie_Target_Change": 0.0
+      },
+      "If_Compliance_0.7_to_0.85": "Maintain current structure",
+      "If_Compliance_Greater_Than_0.85": "Allow deterministic rotation from Ingredient_Substitution_Map (no randomness)"
+    },
+    "Rotation_Rule": "Cycle through substitution lists deterministically (e.g., index = week_number % list_length)"
+  },
+  "Plateau_Detection_Logic": {
+    "Execution_Position": "After Compliance_Adaptive_Control.Weight_Change_Rules",
+    "Formula": "Weight_Change_Pct = (Current_Weight_kg - Previous_Weight_kg) / Previous_Weight_kg",
+    "Detection_Rule": "If abs(Weight_Change_Pct) < 0.005 for 2 consecutive weeks, plateau detected",
+    "Adjustment_Rule": {
+      "If_Plateau": "Adjust Final_kcal_per_day by +-0.05 (positive if goal is gain/underweight, negative if loss/overweight)",
+      "Respect_Constraints": [
+        "Global_Adjustment_Cap",
+        "Absolute_Calorie_Safety_Limits",
+        "Minimum_Safe_Calorie_Floor"
+      ]
+    },
+    "Reference": "Scientific_Reference_Sources.AAFCO_Version (Guidelines for Adaptive Feeding in Weight Management)"
+  },
   "User_Complexity_Adaptive_Module_v2": {
     "Complexity_Scoring_System": {
       "Ingredient_Count_Score": "ingredient_count_per_meal * 0.4",
@@ -3197,30 +3127,164 @@
       "Must_Preserve_Final_kcal_per_day": true
     }
   },
+  "Persistence_Model_Schema": {
+    "User_Profile": {
+      "fields": {
+        "user_id": "unique_identifier",
+        "subscription_level": "string",
+        "location": "string"
+      }
+    },
+    "Pet_Profile": {
+      "fields": {
+        "pet_id": "unique_identifier",
+        "breed": "string",
+        "age_months": "integer",
+        "weight_kg_history": "array of {date: string, weight: number}",
+        "bcs_category_history": "array of {date: string, bcs: string}",
+        "activity_level": "string",
+        "goal": "string",
+        "symptoms": "array of string"
+      }
+    },
+    "Weekly_Plan": {
+      "fields": {
+        "week_id": "unique_identifier",
+        "pet_id": "reference",
+        "week_number": "integer",
+        "calorie_target_daily": "number",
+        "macro_profile": "object {protein: number, fat: number, carbs: number, fiber: number}",
+        "meal_cycle": "array of daily plans {day: integer, meals: array of {kcal: number, ingredients: array of {name: string, grams: number}}}"
+      }
+    },
+    "Daily_Log": {
+      "fields": {
+        "log_id": "unique_identifier",
+        "week_id": "reference",
+        "day_number": "integer",
+        "status": "string (completed/partial/skipped)",
+        "actual_intake_kcal": "number optional",
+        "notes": "string optional"
+      }
+    },
+    "Compliance_Percent_Calc": "Sum(Daily_Log.status == 'completed' ? 1 : status == 'partial' ? 0.5 : 0) / 7 * 100"
+  },
+  "Simple_Persistence_Layer_v1": {
+    "Mode": "MVP_Minimal",
+    "Pet_Profile": {
+      "pet_id": "string",
+      "breed": "string",
+      "age_months": "integer",
+      "current_weight_kg": "number",
+      "previous_weight_kg": "number",
+      "activity_level": "string",
+      "goal": "string",
+      "bcs_last": "integer",
+      "renal_support_required": "boolean",
+      "last_updated_date": "ISO_date"
+    },
+    "Weight_History_Config": {
+      "store_last_only": true,
+      "optional_full_history_array": false
+    },
+    "Recalculation_Trigger": {
+      "On_Weight_Update": [
+        "Store previous_weight_kg",
+        "Update current_weight_kg",
+        "Run BCS_Automatic_Detection_Logic",
+        "Run Master_Calorie_Adjustment_Pipeline",
+        "Run Macro_Conversion_Engine"
+      ],
+      "On_Goal_Update": [
+        "Run Goal_Override_Controller",
+        "Recalculate Final_kcal_per_day",
+        "Recalculate macros"
+      ],
+      "On_Activity_Update": [
+        "Recalculate Final_kcal_per_day"
+      ]
+    },
+    "Integrity_Rules": {
+      "Never_Modify_Core_Engines": true,
+      "Only_Trigger_Recalculation": true,
+      "Deterministic_Output_Must_Remain": true
+    }
+  },
+  "Calorie_Stack_Simulation_Tests": {
+    "Test_Cases": [
+      {
+        "Scenario": "Obese_Senior_Summer_Low_Activity",
+        "Inputs": {
+          "Age_Years": 9,
+          "BCS_Category": "Obese",
+          "Season": "Summer",
+          "Activity_Level": "Low_Activity"
+        },
+        "Expected_Execution_Order": [
+          "Base_Calorie",
+          "Activity_Adjustment",
+          "Weight_Adjustment",
+          "Seasonal_Adjustment",
+          "Symptom_Adjustment_if_any"
+        ],
+        "Stacking_Rule": "Additive percentage adjustments applied sequentially",
+        "Conflict_Check": "Ensure no double seasonal application"
+      },
+      {
+        "Scenario": "High_Activity_Young_Adult_Winter",
+        "Inputs": {
+          "Age_Years": 3,
+          "BCS_Category": "Ideal",
+          "Season": "Winter",
+          "Activity_Level": "High_Activity"
+        },
+        "Validation_Target": "Final calories should reflect +activity and +winter shift only"
+      },
+      {
+        "Scenario": "Loose_Motion_Puppy_4_Months",
+        "Inputs": {
+          "Age_Months": 4,
+          "Symptom": "Loose_Motion"
+        },
+        "Validation_Target": "Hydration override applied; calorie reduction applied once"
+      }
+    ]
+  },
+  "Execution_Order_Index": {
+    "Stage_Resolution": 1,
+    "Ideal_Weight_Calculation": 2,
+    "BCS_Detection": 3,
+    "Base_Calorie_Calculation": 4,
+    "Activity_Adjustment": 5,
+    "Weight_Adjustment": 6,
+    "Goal_Override": 7,
+    "Symptom_Adjustment": 8,
+    "Seasonal_Adjustment": 9,
+    "Hydration_Adjustment": 10
+  },
   "Engine_Integrity_Validation_Layer": {
     "All_Percentages_Decimal_0_to_1": true,
+    "No_Duplicate_Keys": true,
     "No_Duplicate_Seasonal_Modifiers": true,
     "BCS_Ranges_Continuous": true,
     "Hydration_Max_Multiplier": 1.5,
+    "Hydration_Applied_Once": true,
     "Global_Adjustment_Cap_Enforced": true,
     "Minimum_Calorie_Floor_Enforced": true,
     "Execution_Order_Indexed": true,
-    "JSON_Structure_Valid": true,
-    "No_Duplicate_Keys": true,
-    "Clamp_Applied_Before_Multiplication": true,
     "Single_Seasonal_Authority": true,
-    "Hydration_Applied_Once": true,
-    "Deterministic_Output": true,
+    "Clamp_Applied_Before_Multiplication": true,
     "RER_Formula_Defined": true,
     "MER_Source_Unique": true,
     "MER_Applied_Only_Once": true,
     "All_Adjustments_Additive_Not_Multiplicative": true,
-    "Clamp_Applied_Before_Final_Multiplication": true,
     "No_Randomness": true,
     "Same_Input_Same_Output": true,
     "Single_Final_Calorie_Value": true,
     "Hydration_Single_Output": true,
-    "BCS_Final_Single_Category": true
+    "BCS_Final_Single_Category": true,
+    "Deterministic_Output": true,
+    "JSON_Structure_Valid": true
   },
   "Expanded_Food_Composition_Database_v2": {
     "Version": "2025-02",
@@ -3291,6 +3355,8 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 65.0,
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.24,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3300,9 +3366,7 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.5,
-        "category": "lean_animal_protein",
-        "calcium_g_per_100g": 0.015,
-        "phosphorus_g_per_100g": 0.24
+        "category": "lean_animal_protein"
       },
       "Chicken thigh boiled": {
         "kcal_per_100g": 177,
@@ -3311,6 +3375,8 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 68.0,
+        "calcium_g_per_100g": 0.012,
+        "phosphorus_g_per_100g": 0.19,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3318,9 +3384,7 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "lean_animal_protein",
-        "calcium_g_per_100g": 0.012,
-        "phosphorus_g_per_100g": 0.19
+        "category": "lean_animal_protein"
       },
       "Egg whole boiled": {
         "kcal_per_100g": 155,
@@ -3329,6 +3393,8 @@
         "carbs_g": 1.1,
         "fiber_g": 0.0,
         "moisture_g": 75.0,
+        "calcium_g_per_100g": 0.05,
+        "phosphorus_g_per_100g": 0.2,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3338,9 +3404,7 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "lean_animal_protein",
-        "calcium_g_per_100g": 0.05,
-        "phosphorus_g_per_100g": 0.2
+        "category": "lean_animal_protein"
       },
       "Rohu fish boiled deboned": {
         "kcal_per_100g": 97,
@@ -3349,6 +3413,8 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 78.0,
+        "calcium_g_per_100g": 0.025,
+        "phosphorus_g_per_100g": 0.22,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "adult",
@@ -3356,9 +3422,7 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "lean_animal_protein",
-        "calcium_g_per_100g": 0.025,
-        "phosphorus_g_per_100g": 0.22
+        "category": "lean_animal_protein"
       },
       "Surmai fish boiled deboned": {
         "kcal_per_100g": 105,
@@ -3367,15 +3431,15 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 76.0,
+        "calcium_g_per_100g": 0.03,
+        "phosphorus_g_per_100g": 0.21,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "adult",
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "lean_animal_protein",
-        "calcium_g_per_100g": 0.03,
-        "phosphorus_g_per_100g": 0.21
+        "category": "lean_animal_protein"
       },
       "Cod fish boiled deboned": {
         "kcal_per_100g": 82,
@@ -3384,15 +3448,15 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 81.0,
+        "calcium_g_per_100g": 0.016,
+        "phosphorus_g_per_100g": 0.2,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "senior",
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "senior_low_phosphorus_protein",
-        "calcium_g_per_100g": 0.016,
-        "phosphorus_g_per_100g": 0.2
+        "category": "senior_low_phosphorus_protein"
       },
       "Chicken liver boiled": {
         "kcal_per_100g": 167,
@@ -3401,15 +3465,15 @@
         "carbs_g": 0.9,
         "fiber_g": 0.0,
         "moisture_g": 68.0,
+        "calcium_g_per_100g": 0.01,
+        "phosphorus_g_per_100g": 0.41,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
           "adult",
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.05,
-        "category": "controlled_organ",
-        "calcium_g_per_100g": 0.01,
-        "phosphorus_g_per_100g": 0.41
+        "category": "controlled_organ"
       },
       "Rice cooked white": {
         "kcal_per_100g": 130,
@@ -3418,14 +3482,14 @@
         "carbs_g": 28.2,
         "fiber_g": 0.4,
         "moisture_g": 68.5,
+        "calcium_g_per_100g": 0.003,
+        "phosphorus_g_per_100g": 0.043,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "all"
         ],
         "max_safe_percentage_of_total_meal": 0.5,
-        "category": "carb_base",
-        "calcium_g_per_100g": 0.003,
-        "phosphorus_g_per_100g": 0.043
+        "category": "carb_base"
       },
       "Roti plain wheat (no salt, no oil)": {
         "kcal_per_100g": 265,
@@ -3434,6 +3498,8 @@
         "carbs_g": 50.0,
         "fiber_g": 2.0,
         "moisture_g": 35.0,
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.09,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
           "adult",
@@ -3441,9 +3507,7 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.5,
-        "category": "carb_base",
-        "calcium_g_per_100g": 0.015,
-        "phosphorus_g_per_100g": 0.09
+        "category": "carb_base"
       },
       "Oats cooked": {
         "kcal_per_100g": 71,
@@ -3452,6 +3516,8 @@
         "carbs_g": 12.0,
         "fiber_g": 1.7,
         "moisture_g": 83.0,
+        "calcium_g_per_100g": 0.009,
+        "phosphorus_g_per_100g": 0.077,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
           "adult",
@@ -3459,9 +3525,7 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "carb_base",
-        "calcium_g_per_100g": 0.009,
-        "phosphorus_g_per_100g": 0.077
+        "category": "carb_base"
       },
       "Moong dal cooked": {
         "kcal_per_100g": 105,
@@ -3470,6 +3534,8 @@
         "carbs_g": 19.0,
         "fiber_g": 3.5,
         "moisture_g": 70.0,
+        "calcium_g_per_100g": 0.014,
+        "phosphorus_g_per_100g": 0.1,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "adult",
@@ -3477,9 +3543,7 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.3,
-        "category": "carb_base",
-        "calcium_g_per_100g": 0.014,
-        "phosphorus_g_per_100g": 0.1
+        "category": "carb_base"
       },
       "Pumpkin boiled": {
         "kcal_per_100g": 20,
@@ -3488,6 +3552,8 @@
         "carbs_g": 4.9,
         "fiber_g": 1.1,
         "moisture_g": 94.0,
+        "calcium_g_per_100g": 0.015,
+        "phosphorus_g_per_100g": 0.044,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3496,9 +3562,7 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.35,
-        "category": "growth_safe_fiber_veg",
-        "calcium_g_per_100g": 0.015,
-        "phosphorus_g_per_100g": 0.044
+        "category": "growth_safe_fiber_veg"
       },
       "Lauki boiled": {
         "kcal_per_100g": 15,
@@ -3507,6 +3571,8 @@
         "carbs_g": 3.4,
         "fiber_g": 0.9,
         "moisture_g": 96.0,
+        "calcium_g_per_100g": 0.016,
+        "phosphorus_g_per_100g": 0.025,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3515,9 +3581,7 @@
           "weight_loss"
         ],
         "max_safe_percentage_of_total_meal": 0.4,
-        "category": "growth_safe_fiber_veg",
-        "calcium_g_per_100g": 0.016,
-        "phosphorus_g_per_100g": 0.025
+        "category": "growth_safe_fiber_veg"
       },
       "Carrot boiled": {
         "kcal_per_100g": 35,
@@ -3526,6 +3590,8 @@
         "carbs_g": 8.2,
         "fiber_g": 3.0,
         "moisture_g": 89.0,
+        "calcium_g_per_100g": 0.033,
+        "phosphorus_g_per_100g": 0.035,
         "digestibility_rating": "moderate",
         "lifecycle_suitability": [
           "puppy",
@@ -3533,9 +3599,7 @@
           "senior"
         ],
         "max_safe_percentage_of_total_meal": 0.2,
-        "category": "growth_safe_fiber_veg",
-        "calcium_g_per_100g": 0.033,
-        "phosphorus_g_per_100g": 0.035
+        "category": "growth_safe_fiber_veg"
       },
       "Sweet potato boiled": {
         "kcal_per_100g": 86,
@@ -3544,6 +3608,8 @@
         "carbs_g": 20.1,
         "fiber_g": 3.0,
         "moisture_g": 77.0,
+        "calcium_g_per_100g": 0.03,
+        "phosphorus_g_per_100g": 0.047,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "puppy",
@@ -3551,9 +3617,7 @@
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.25,
-        "category": "carb_base",
-        "calcium_g_per_100g": 0.03,
-        "phosphorus_g_per_100g": 0.047
+        "category": "carb_base"
       },
       "Coconut oil": {
         "kcal_per_100g": 862,
@@ -3562,15 +3626,15 @@
         "carbs_g": 0.0,
         "fiber_g": 0.0,
         "moisture_g": 0.0,
+        "calcium_g_per_100g": 0.0,
+        "phosphorus_g_per_100g": 0.0,
         "digestibility_rating": "high",
         "lifecycle_suitability": [
           "adult",
           "muscle_gain"
         ],
         "max_safe_percentage_of_total_meal": 0.05,
-        "category": "moderate_fat_source",
-        "calcium_g_per_100g": 0.0,
-        "phosphorus_g_per_100g": 0.0
+        "category": "moderate_fat_source"
       },
       "Paneer low fat": {
         "kcal_per_100g": 200,
@@ -3578,10 +3642,18 @@
         "fat_g": 12,
         "carbs_g": 3,
         "fiber_g": 0,
-        "category": "veg_protein",
+        "moisture_g": 50.0,
         "calcium_g_per_100g": 0.2,
         "phosphorus_g_per_100g": 0.15,
-        "moisture_g": 50.0
+        "category": "veg_protein",
+        "digestibility_rating": "moderate",
+        "lifecycle_suitability": [
+          "adult",
+          "senior",
+          "muscle_gain"
+        ],
+        "max_safe_percentage_of_total_meal": 0.15,
+        "_Note": "High calcium content (0.2g/100g). Use controlled portions. Not recommended during growth phases due to unbalanced Ca:P ratio without complementary phosphorus source."
       },
       "Tofu firm": {
         "kcal_per_100g": 144,
@@ -3589,10 +3661,18 @@
         "fat_g": 8,
         "carbs_g": 3,
         "fiber_g": 1,
-        "category": "veg_protein",
+        "moisture_g": 70.0,
         "calcium_g_per_100g": 0.35,
         "phosphorus_g_per_100g": 0.19,
-        "moisture_g": 70.0
+        "category": "veg_protein",
+        "digestibility_rating": "moderate",
+        "lifecycle_suitability": [
+          "adult",
+          "senior",
+          "weight_loss"
+        ],
+        "max_safe_percentage_of_total_meal": 0.15,
+        "_Note": "Adequate veg protein alternative. Lower biological value than animal protein. Calcium high (0.35g/100g) — monitor Ca:P during growth."
       },
       "Masoor dal cooked": {
         "kcal_per_100g": 116,
@@ -3600,10 +3680,18 @@
         "fat_g": 0.4,
         "carbs_g": 20,
         "fiber_g": 8,
-        "category": "veg_protein",
+        "moisture_g": 70.0,
         "calcium_g_per_100g": 0.019,
         "phosphorus_g_per_100g": 0.18,
-        "moisture_g": 70.0
+        "category": "veg_protein",
+        "digestibility_rating": "moderate",
+        "lifecycle_suitability": [
+          "adult",
+          "senior",
+          "weight_loss"
+        ],
+        "max_safe_percentage_of_total_meal": 0.2,
+        "_Note": "High fiber (8g/100g). Useful for satiety in weight loss. Not suitable as primary protein source — low biological value vs animal proteins."
       }
     },
     "Diet_Rotation_Config": {
@@ -3755,16 +3843,16 @@
         ]
       },
       "Allocation_Priority": [
-        "protein_animal → target protein g",
+        "protein_animal -> target protein g",
         "fat_from_protein + added fat source",
-        "carb_base → remaining calories",
-        "fiber_veg → volume & satiety (max % respected)"
+        "carb_base -> remaining calories",
+        "fiber_veg -> volume & satiety (max % respected)"
       ],
       "Validation_Before_Output": [
-        "Ca g / 1000 kcal ∈ [3.0, 4.5] during growth (Lifecycle_Growth_Model_20_Stages)",
-        "Ca:P ratio ∈ [1.1, 1.4] during growth",
-        "Protein % DM ≥ Nutrient_Standards.Growth_Large_Breed.Min_Protein_Percent_DM or Adult_Maintenance",
-        "Macro sum ≈ 1.0 (±0.02 tolerance)",
+        "Ca g / 1000 kcal in [3.0, 4.5] during growth (Lifecycle_Growth_Model_20_Stages)",
+        "Ca:P ratio in [1.1, 1.4] during growth",
+        "Protein % DM >= Nutrient_Standards.Growth_Large_Breed.Min_Protein_Percent_DM or Adult_Maintenance",
+        "Macro sum ~= 1.0 (+-0.02 tolerance)",
         "No prohibited proteins used"
       ]
     },
@@ -3787,58 +3875,6 @@
         ],
         "notes": "Soothing for GI irritation"
       }
-    },
-    "therapeutic_meals": {
-      "GI_Support": [
-        "Khichdi"
-      ],
-      "Recovery": [
-        "Daliya"
-      ],
-      "Digestive_Cooling": [
-        "Curd rice"
-      ]
-    }
-  },
-  "Simple_Persistence_Layer_v1": {
-    "Mode": "MVP_Minimal",
-    "Pet_Profile": {
-      "pet_id": "string",
-      "breed": "string",
-      "age_months": "integer",
-      "current_weight_kg": "number",
-      "previous_weight_kg": "number",
-      "activity_level": "string",
-      "goal": "string",
-      "bcs_last": "integer",
-      "renal_support_required": "boolean",
-      "last_updated_date": "ISO_date"
-    },
-    "Weight_History_Config": {
-      "store_last_only": true,
-      "optional_full_history_array": false
-    },
-    "Recalculation_Trigger": {
-      "On_Weight_Update": [
-        "Store previous_weight_kg",
-        "Update current_weight_kg",
-        "Run BCS_Automatic_Detection_Logic",
-        "Run Master_Calorie_Adjustment_Pipeline",
-        "Run Macro_Conversion_Engine"
-      ],
-      "On_Goal_Update": [
-        "Run Goal_Override_Controller",
-        "Recalculate Final_kcal_per_day",
-        "Recalculate macros"
-      ],
-      "On_Activity_Update": [
-        "Recalculate Final_kcal_per_day"
-      ]
-    },
-    "Integrity_Rules": {
-      "Never_Modify_Core_Engines": true,
-      "Only_Trigger_Recalculation": true,
-      "Deterministic_Output_Must_Remain": true
     }
   },
   "Deterministic_Gram_Allocator_v1": {
@@ -3856,7 +3892,7 @@
       "Adjustment_Method": "Increase grams until Protein_g target met"
     },
     "Fat_Adjustment_Rule": {
-      "If_Fat_From_Protein < Target_Fat_g": "Add Coconut oil incrementally",
+      "If_Fat_From_Protein_Less_Than_Target_Fat_g": "Add Coconut oil incrementally",
       "Increment_Step_g": 1,
       "Stop_When": "Fat_g target reached"
     },
