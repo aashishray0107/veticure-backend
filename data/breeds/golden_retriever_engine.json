@@ -813,6 +813,8 @@
   "Senior_Phosphorus_Control_Module": {
     "Execution_Position": "After Mineral_Computation_Engine, Before Dry_Matter_Validation_Engine",
     "Lifecycle_Activation": "Activate if Lifecycle_Growth_Model_20_Stages.Stage_Name in ['Early_Senior', 'Senior', 'Geriatric']",
+    "Warn_Only": true,
+    "Substitution_Requires_Renal_Flag": true,
     "Safe_Phosphorus_g_per_1000_kcal_Range": [0.40, 0.50],
     "Clinical_Note": "Floor set at 0.40 (not 0.30) to prevent hypophosphatemia risk. Values below 0.40 require explicit vet override and must not be auto-applied by the engine.",
     "Vet_Override_Floor": 0.30,
